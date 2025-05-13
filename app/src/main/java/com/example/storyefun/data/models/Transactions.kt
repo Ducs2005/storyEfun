@@ -5,5 +5,4 @@ data class Transactions (
     val coin: Int = 0,
     val money: Double = 0.0,
     val time: Long = 0L
-
 )

@@ -102,6 +102,8 @@ dependencies {
     // Thêm thư viện OkHttp và Commons Codec (nếu chưa có)
     implementation("com.squareup.okhttp3:okhttp:4.6.0")
     implementation("commons-codec:commons-codec:1.14")
+    implementation ("androidx.webkit:webkit:1.6.0")
+
 
     implementation("xmlpull:xmlpull:1.1.3.4d_b4_min")
     implementation(fileTree(mapOf(
