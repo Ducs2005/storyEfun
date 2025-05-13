@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storyefun.data.models.User
 import com.example.storyefun.data.repository.BookRepository
 import com.example.storyefun.data.repository.CloudnaryRepository
@@ -164,6 +165,19 @@ class UserViewModel() : ViewModel() {
     {
 
     }
+
+
+    fun getBalance(): Long {
+        val userId = auth.uid ?: return 0L
+
+        return try {
+            val snapshot = Firebase.firestore.collection("users").document(userId).get().result
+            snapshot.getLong("coin") ?: 0L
+        } catch (e: Exception) {
+            0L // hoặc xử lý lỗi theo cách bạn muốn
+        }
+    }
+
     private val _usersList = MutableStateFlow<List<User>>(emptyList())
     val usersList: StateFlow<List<User>> = _usersList
 

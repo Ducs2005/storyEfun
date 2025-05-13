@@ -40,6 +40,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.storyefun.R
+import com.example.storyefun.ui.theme.AppColors
+import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.ThemeViewModel
 import com.example.storyefun.viewModel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -56,9 +58,8 @@ import androidx.compose.material.icons.filled.Person
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) {
+    val theme = LocalAppColors.current
     val isDarkMode by themeViewModel.isDarkTheme.collectAsState()
-    val backgroundColor = if (isDarkMode) Color(0xFF121212) else Color(0xFFF5F5F5)
-    val textColor = if (isDarkMode) Color.White else Color.Black
     val userViewModel: UserViewModel = viewModel()
     val context = LocalContext.current
 
@@ -109,14 +110,29 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
     if (showUsernameDialog) {
         AlertDialog(
             onDismissRequest = { showUsernameDialog = false },
-            title = { Text("Change Username") },
+            modifier = Modifier.background(theme.backgroundColor, RoundedCornerShape(12.dp)),
+            title = {
+                Text(
+                    "Change Username",
+                    color = theme.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
             text = {
                 OutlinedTextField(
                     value = newUsername,
                     onValueChange = { newUsername = it },
-                    label = { Text("New Username") },
+                    label = { Text("New Username", color = theme.textSecondary) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = theme.textPrimary,
+                        unfocusedBorderColor = theme.textSecondary,
+                        focusedLabelColor = theme.textPrimary,
+                        unfocusedLabelColor = theme.textSecondary,
+                        cursorColor = theme.textPrimary
+                    )
                 )
             },
             confirmButton = {
@@ -134,14 +150,18 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
                             }
                         )
                     },
-                    enabled = newUsername.isNotBlank()
+                    enabled = newUsername.isNotBlank(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = theme.textPrimary)
                 ) {
-                    Text("Save")
+                    Text("Save", fontWeight = FontWeight.Medium)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showUsernameDialog = false }) {
-                    Text("Cancel")
+                TextButton(
+                    onClick = { showUsernameDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = theme.textSecondary)
+                ) {
+                    Text("Cancel", fontWeight = FontWeight.Medium)
                 }
             }
         )
@@ -151,16 +171,31 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
     if (showPasswordDialog) {
         AlertDialog(
             onDismissRequest = { showPasswordDialog = false },
-            title = { Text("Change Password") },
+            modifier = Modifier.background(theme.backgroundColor, RoundedCornerShape(12.dp)),
+            title = {
+                Text(
+                    "Change Password",
+                    color = theme.textPrimary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
             text = {
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("New Password") },
+                    label = { Text("New Password", color = theme.textSecondary) },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = theme.textPrimary,
+                        unfocusedBorderColor = theme.textSecondary,
+                        focusedLabelColor = theme.textPrimary,
+                        unfocusedLabelColor = theme.textSecondary,
+                        cursorColor = theme.textPrimary
+                    )
                 )
             },
             confirmButton = {
@@ -178,14 +213,18 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
                             }
                         )
                     },
-                    enabled = newPassword.length >= 6
+                    enabled = newPassword.length >= 6,
+                    colors = ButtonDefaults.textButtonColors(contentColor = theme.textPrimary)
                 ) {
-                    Text("Save")
+                    Text("Save", fontWeight = FontWeight.Medium)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPasswordDialog = false }) {
-                    Text("Cancel")
+                TextButton(
+                    onClick = { showPasswordDialog = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = theme.textSecondary)
+                ) {
+                    Text("Cancel", fontWeight = FontWeight.Medium)
                 }
             }
         )
@@ -195,7 +234,8 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = theme.backgroundColor
         ) {
             Column(
                 modifier = Modifier
@@ -206,6 +246,7 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
                     text = "Select Avatar",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
+                    color = theme.textPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 Button(
@@ -213,9 +254,16 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
                         galleryLauncher.launch("image/*")
                         showBottomSheet = false
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.textPrimary,
+                        contentColor = theme.backgroundColor
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Pick from Gallery")
+                    Text("Pick from Gallery", fontSize = 16.sp)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
@@ -228,10 +276,18 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
                         }
                         showBottomSheet = false
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.textPrimary,
+                        contentColor = theme.backgroundColor
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Take a Photo")
+                    Text("Take a Photo", fontSize = 16.sp)
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -239,21 +295,22 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(theme.backgroundColor)
     ) {
         ProfileHeader(
-            textColor = textColor,
             navController = navController,
             displayName = firebaseUser?.displayName ?: "Guest",
             email = firebaseUser?.email ?: "No email",
             photoUrl = firebaseUser?.photoUrl?.toString(),
             onEditAvatarClick = { showBottomSheet = true },
-            onEditUsernameClick = { showUsernameDialog = true }
+            onEditUsernameClick = { showUsernameDialog = true },
+            theme = theme,
+            isDarkMode = isDarkMode
         )
         SettingsSection(
             navController = navController,
             darkMode = isDarkMode,
-            textColor = textColor,
+            theme = theme,
             onDarkModeToggle = { themeViewModel.toggleTheme() },
             onChangePasswordClick = { showPasswordDialog = true },
             onItemClick = { destination ->
@@ -276,33 +333,40 @@ fun ProfileScreen(navController: NavController, themeViewModel: ThemeViewModel) 
 
 @Composable
 fun ProfileHeader(
-    textColor: Color,
     navController: NavController,
     displayName: String,
     email: String,
     photoUrl: String?,
     onEditAvatarClick: () -> Unit,
-    onEditUsernameClick: () -> Unit
+    onEditUsernameClick: () -> Unit,
+    theme: AppColors,
+    isDarkMode: Boolean
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(280.dp)
             .background(
                 Brush.linearGradient(
-                    colors = listOf(Color(0xFF6200EE), Color(0xFF03DAC5)),
+                    colors = if (isDarkMode) {
+                        listOf(theme.textPrimary.copy(alpha = 0.8f), theme.backgroundContrast2)
+                    } else {
+                        listOf(theme.textPrimary.copy(alpha = 0.9f), theme.backgroundContrast2.copy(alpha = 0.7f))
+                    },
                     start = Offset(0f, 0f),
                     end = Offset(0f, 400f)
-                )
+                ),
+                RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
             )
+            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Box(
                 contentAlignment = Alignment.BottomEnd
             ) {
@@ -319,84 +383,94 @@ fun ProfileHeader(
                     contentDescription = "Profile Picture",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(120.dp)
+                        .size(100.dp)
                         .clip(CircleShape)
-                        .border(3.dp, Color.White, CircleShape)
-                        .shadow(8.dp, CircleShape)
+                        .border(2.dp, theme.backgroundColor, CircleShape)
+                        .shadow(6.dp, CircleShape)
                 )
                 IconButton(
                     onClick = onEditAvatarClick,
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(Color.White, CircleShape)
-                        .border(2.dp, Color(0xFF6200EE), CircleShape)
+                        .size(32.dp)
+                        .background(theme.backgroundColor, CircleShape)
+                        .border(1.dp, theme.textPrimary, CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Change Avatar",
-                        tint = Color(0xFF6200EE),
-                        modifier = Modifier.size(20.dp)
+                        tint = theme.textPrimary,
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = displayName,
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = theme.backgroundColor
                 )
                 IconButton(
                     onClick = onEditUsernameClick,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(28.dp)
                         .padding(start = 8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Change Username",
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                        tint = theme.backgroundColor,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = email,
-                fontSize = 16.sp,
-                color = Color.White.copy(alpha = 0.8f)
+                fontSize = 14.sp,
+                color = theme.backgroundColor.copy(alpha = 0.8f)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            ProfileStats()
+            ProfileStats(theme = theme)
         }
     }
 }
 
 @Composable
-fun ProfileStats() {
+fun ProfileStats(theme: AppColors) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        StatItem("122", "Followers")
-        StatItem("67", "Following")
-        StatItem("37K", "Likes")
+        StatItem("122", "Followers", theme)
+        StatItem("67", "Following", theme)
+        StatItem("37K", "Likes", theme)
     }
 }
 
 @Composable
-fun StatItem(number: String, label: String) {
+fun StatItem(number: String, label: String, theme: AppColors) {
+    var isPressed by remember { mutableStateOf(false) }
+    val backgroundColor by animateColorAsState(
+        if (isPressed) theme.textPrimary.copy(alpha = 0.1f) else theme.backgroundColor
+    )
+
     Card(
         modifier = Modifier
             .padding(4.dp)
-            .width(100.dp),
+            .width(90.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { isPressed = !isPressed },
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -404,14 +478,14 @@ fun StatItem(number: String, label: String) {
         ) {
             Text(
                 text = number,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF6200EE)
+                color = theme.textPrimary
             )
             Text(
                 text = label,
-                fontSize = 14.sp,
-                color = Color.Gray
+                fontSize = 12.sp,
+                color = theme.textSecondary
             )
         }
     }
@@ -421,7 +495,7 @@ fun StatItem(number: String, label: String) {
 fun SettingsSection(
     navController: NavController,
     darkMode: Boolean,
-    textColor: Color,
+    theme: AppColors,
     onDarkModeToggle: (Boolean) -> Unit,
     onChangePasswordClick: () -> Unit,
     onItemClick: (String) -> Unit
@@ -429,18 +503,17 @@ fun SettingsSection(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (darkMode) Color(0xFF1F1F1F) else Color.White
-        )
+        colors = CardDefaults.cardColors(containerColor = theme.backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Settings",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 20.sp,
-                color = textColor
+                color = theme.textPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
             SettingItem(
@@ -448,63 +521,56 @@ fun SettingsSection(
                 icon = Icons.Default.Face,
                 switch = true,
                 darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onDarkModeToggle = { onDarkModeToggle(it) }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Tài khoản",
                 icon = Icons.Default.Person,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { onItemClick("account") }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Đổi mật khẩu",
                 icon = Icons.Default.Lock,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = onChangePasswordClick
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Truyện yêu thích",
                 icon = Icons.Default.Favorite,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { navController.navigate("mystory") }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Truyện đã đăng",
                 icon = Icons.Default.Add,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { navController.navigate("mystory") }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Thêm truyện",
                 icon = Icons.Default.Add,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { navController.navigate("upload") }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Liên hệ",
                 icon = Icons.Default.Call,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { onItemClick("contact") }
             )
-            Divider(color = textColor.copy(alpha = 0.1f))
+            Divider(color = theme.textSecondary.copy(alpha = 0.1f), thickness = 0.5.dp)
             SettingItem(
                 title = "Log out",
                 icon = Icons.Default.ExitToApp,
-                darkMode = darkMode,
-                textColor = textColor,
+                theme = theme,
                 onClick = { onItemClick("out") }
             )
         }
@@ -517,40 +583,41 @@ fun SettingItem(
     icon: ImageVector,
     switch: Boolean = false,
     darkMode: Boolean = false,
-    textColor: Color,
+    theme: AppColors,
     onDarkModeToggle: ((Boolean) -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val backgroundColor by animateColorAsState(
-        if (isPressed) textColor.copy(alpha = 0.1f) else Color.Transparent
+        if (isPressed) theme.textPrimary.copy(alpha = 0.05f) else Color.Transparent
     )
-    val elevation by animateDpAsState(if (isPressed) 4.dp else 0.dp)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
             .clickable(
-                onClick = { onClick?.invoke() },
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
+                onClick = {
+                    isPressed = true
+                    onClick?.invoke()
+                    isPressed = false
+                }
             )
-            .padding(vertical = 12.dp, horizontal = 16.dp),
+            .padding(vertical = 12.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = textColor,
+            tint = theme.textPrimary,
             modifier = Modifier.size(24.dp)
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = title,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            color = textColor
+            color = theme.textPrimary
         )
         Spacer(modifier = Modifier.weight(1f))
         if (switch) {
@@ -558,10 +625,10 @@ fun SettingItem(
                 checked = darkMode,
                 onCheckedChange = { onDarkModeToggle?.invoke(it) },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF6200EE),
-                    checkedTrackColor = Color(0xFFBB86FC),
-                    uncheckedThumbColor = Color.White,
-                    uncheckedTrackColor = Color.Gray
+                    checkedThumbColor = theme.textPrimary,
+                    checkedTrackColor = theme.textPrimary.copy(alpha = 0.5f),
+                    uncheckedThumbColor = theme.backgroundColor,
+                    uncheckedTrackColor = theme.textSecondary.copy(alpha = 0.5f)
                 )
             )
         }

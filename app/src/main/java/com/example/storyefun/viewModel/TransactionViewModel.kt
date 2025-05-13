@@ -37,7 +37,7 @@ class TransactionViewModel(
     fun loadTransactions() {
         viewModelScope.launch {
             // Gọi repository để lấy giao dịch
-            val result = repository.getTransactions(userID)
+            val result = repository.getTransactions()
             // Cập nhật danh sách nếu thành công, hoặc thông báo lỗi
             if (result.isSuccess) {
                 _transactions.value = result.getOrNull() ?: emptyList()

@@ -141,36 +141,7 @@ fun LoginScreen(navController: NavController) {
                 Text("Don't have an account? Sign up here!", color = Color(0xFF1E90FF))
             }
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 100.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(10.dp)
-            ) {
-                AsyncImage(
-                    model = "https://png.pngtree.com/png-clipart/20180515/ourmid/pngtree-facebook-logo-facebook-icon-png-image_3566127.png",
-                    contentDescription = "Facebook Logo",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(10.dp)
-            ) {
-                AsyncImage(
-                    model = "https://upload.wikimedia.org/wikipedia/commons/0/09/IOS_Google_icon.png",
-                    contentDescription = "Google Logo",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
+
     }
 }
 

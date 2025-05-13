@@ -8,25 +8,27 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.storyefun.data.models.Book
-import com.example.storyefun.data.repository.BookRepository
 import com.example.storyefun.data.models.Chapter
-import kotlinx.coroutines.delay
+import com.example.storyefun.data.repository.BookRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.firestore
+import com.google.firebase.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
-class BookViewModel() : ViewModel()
-{
+class BookViewModel : ViewModel() {
     private val bookRepository: BookRepository = BookRepository()
     private val _books = MutableLiveData<List<Book>>()
-    val books : LiveData<List<Book>> get() = _books
+    val books: LiveData<List<Book>> get() = _books
     private val _book = MutableLiveData<Book?>()
     val book: LiveData<Book?> get() = _book
 
     private val _favoriteBooks = MutableStateFlow<List<Book>>(emptyList())
     val favoriteBooks: StateFlow<List<Book>> = _favoriteBooks
 
-    val _isLoading : MutableLiveData<Boolean> = MutableLiveData(false)
+    val _isLoading: MutableLiveData<Boolean> = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
     private val _fontSize = mutableStateOf(16f)
@@ -35,18 +37,41 @@ class BookViewModel() : ViewModel()
     private val _lineSpacing = mutableStateOf(1f)
     val lineSpacing: State<Float> = _lineSpacing
 
+    private val _unlockedChapterIds = MutableStateFlow<List<String>>(emptyList())
+    val unlockedChapterIds: StateFlow<List<String>> = _unlockedChapterIds
 
     init {
         viewModelScope.launch {
             setState(true)
+            loadUnlockedChapterIds()
             _books.value = bookRepository.getBooks()
-            // Load favorite for favorite screen
+            // Load favorites for favorite screen
             loadFavorites()
+            // Load unlocked chapter IDs
             setState(false)
-
         }
-
     }
+
+    private suspend fun loadUnlockedChapterIds() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        try {
+            val document = Firebase.firestore.collection("users")
+                .document(userId)
+                .get()
+                .await()
+            if (document.exists()) {
+                val unlockedChapterIds = document.get("unlockedChapterIds") as? List<String> ?: emptyList()
+                _unlockedChapterIds.value = unlockedChapterIds
+            } else {
+                Log.w("BookViewModel", "User document not found for userId: $userId")
+                _unlockedChapterIds.value = emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("BookViewModel", "Failed to load unlocked chapter IDs: ${e.message}")
+            _unlockedChapterIds.value = emptyList()
+        }
+    }
+
     fun fetchBook(bookId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -64,37 +89,36 @@ class BookViewModel() : ViewModel()
         }
     }
 
-
     fun addBook(bookId: String) {
-
+        // TODO: Implement addBook logic
     }
+
     fun updateBook(book: Book) {
         viewModelScope.launch {
             _isLoading.value = true
-            delay(2000)
             bookRepository.updateBook(book)
             _books.value = bookRepository.getBooks()
             _isLoading.value = false
         }
     }
+
     fun deleteBook(bookId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            delay(2000) // Simulate API call
             bookRepository.deleteBook(bookId)
             _books.value = bookRepository.getBooks() // Reload books after deletion
             _isLoading.value = false
         }
     }
 
-
-    fun setState(state : Boolean)
-    {
+    fun setState(state: Boolean) {
         _isLoading.value = state
     }
+
     fun setFontSize(size: Float) {
         _fontSize.value = size
     }
+
     fun setLineSpacing(size: Float) {
         _lineSpacing.value = size
     }
@@ -110,8 +134,8 @@ class BookViewModel() : ViewModel()
     fun getPreviousChapter(volumeOrder: Long, chapterOrder: Long): Triple<Boolean, Long?, Long?> {
         val currentBook = _book.value ?: return Triple(false, null, null)
 
-        // Sort volumes by name to ensure consistent order
-        val sortedVolumes = currentBook.volume.sortedBy { it.name }
+        // Sort volumes by order to ensure consistent order
+        val sortedVolumes = currentBook.volume.sortedBy { it.order }
         val volumeIndex = sortedVolumes.indexOfFirst { it.order == volumeOrder }
         if (volumeIndex == -1) return Triple(false, null, null)
 
@@ -145,7 +169,7 @@ class BookViewModel() : ViewModel()
     fun getNextChapter(volumeOrder: Long, chapterOrder: Long): Triple<Boolean, Long?, Long?> {
         val currentBook = _book.value ?: return Triple(false, null, null)
 
-        // Sort volumes by name to ensure consistent order
+        // Sort volumes by order to ensure consistent order
         val sortedVolumes = currentBook.volume.sortedBy { it.order }
         val volumeIndex = sortedVolumes.indexOfFirst { it.order == volumeOrder }
         if (volumeIndex == -1) return Triple(false, null, null)
@@ -177,10 +201,25 @@ class BookViewModel() : ViewModel()
     }
 
     suspend fun loadFavorites() {
-        // TODO: Load từ Firebase hoặc local
+        // TODO: Load from Firebase or local
         _favoriteBooks.value = bookRepository.favoriteBooks() // Replace with real fetch
     }
 
+    /**
+     * Checks if a chapter is unlocked for the current user.
+     * @param chapterId The ID of the chapter to check.
+     * @return True if the chapter is unlocked, false otherwise.
+     */
+    fun isChapterUnlocked(chapterId: String): Boolean {
+        return chapterId in _unlockedChapterIds.value
+    }
 
-
+    /**
+     * Refreshes the list of unlocked chapter IDs from Firestore.
+     */
+    fun refreshUnlockedChapterIds() {
+        viewModelScope.launch {
+            loadUnlockedChapterIds()
+        }
+    }
 }

@@ -76,7 +76,6 @@ fun SettingScreen(navController: NavController? = null, themeViewModel: ThemeVie
                 "Dọn dẹp các tệp tạm thời",
                 "Chặn đoán mạng",
                 "Quản lý thông báo",
-                "Độ phân giải của ảnh",
             )
 
             Column {
@@ -86,7 +85,16 @@ fun SettingScreen(navController: NavController? = null, themeViewModel: ThemeVie
 
                 // 🔹 Dark Mode Toggle
                 DarkModeToggle(themeViewModel, theme.textPrimary)
+                SettingsItem(
+                    title = "Quest",
 
+                    textColor = theme.textPrimary,
+                    onClick = {
+                        if (navController != null) {
+                            navController.navigate("quest")
+                        }
+                    }
+                )
                 // 🔹 Language Setting
                 SettingsItem(
                     title = "Đa ngôn ngữ",

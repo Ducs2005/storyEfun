@@ -1,109 +1,65 @@
 package com.example.storyefun.ui.components
 
 import android.util.Log
-import androidx.compose.foundation.Image
-//import androidx.compose.foundation.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBar
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import coil.compose.rememberAsyncImagePainter
-import com.example.storyefun.data.models.Book
-import com.example.storyefun.ui.theme.LocalAppColors
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.SearchBar
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.res.painterResource
 import com.example.storyefun.R
-import com.example.storyefun.ui.screens.SearchScreen
-
-
-fun fetchBooks(query: String, searchType: String, callback: (List<Book>) -> Unit) {
-    val db = Firebase.firestore
-    val queryRef = if (searchType == "name") {
-        db.collection("books").whereGreaterThanOrEqualTo("name", query)
-    } else {
-        db.collection("books").whereArrayContains("category", query)
-    }
-
-    queryRef.get()
-        .addOnSuccessListener { documents ->
-            val books = documents.map { document ->
-                document.toObject(Book::class.java)
-            }
-            callback(books)
-        }
-        .addOnFailureListener { exception ->
-            callback(emptyList())
-            Log.e("Search", "Error fetching books", exception)
-        }
-}
-
-data class Book(
-    val name: String = "",
-    val category: List<String> = emptyList()
-)
+import com.example.storyefun.ui.theme.LocalAppColors
+import com.example.storyefun.viewModel.ThemeViewModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @Composable
 fun Header(
     modifier: Modifier = Modifier,
     navController: NavController,
+    themeViewModel: ThemeViewModel
 ) {
-    var theme = LocalAppColors.current
-
-    var searchQuery by remember { mutableStateOf("") }
-    var searchType by remember { mutableStateOf("name") }
-    var searchResults by remember { mutableStateOf<List<Book>>(emptyList()) }
+    val auth = FirebaseAuth.getInstance()
+    val firestore = FirebaseFirestore.getInstance()
+    var coinBalance by remember { mutableStateOf(0) }
     var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val theme = LocalAppColors.current
 
-    fun performSearch(query: String) {
+    // Fetch user's coin balance
+    LaunchedEffect(auth.currentUser?.uid) {
+        val userId = auth.currentUser?.uid ?: return@LaunchedEffect
         isLoading = true
-        fetchBooks(query, searchType) { books ->
-            searchResults = books
+        try {
+            val userDoc = firestore.collection("users")
+                .document(userId)
+                .get()
+                .await()
+            coinBalance = (userDoc.getLong("coin")?.toInt() ?: userDoc.get("coin") as? Int ?: 0)
+            Log.d("Header", "Fetched coin balance: $coinBalance for userId=$userId")
+        } catch (e: Exception) {
+            Log.e("Header", "Error fetching coin balance: ${e.message}", e)
+            coinBalance = 0
+        } finally {
             isLoading = false
         }
     }
@@ -111,68 +67,91 @@ fun Header(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFFFFFFF)) // Nền xám sáng
-            .padding(top = 5.dp, bottom = 5.dp)
+            .background(theme.header.copy(0.8f))
+            .padding(top = 3.dp, bottom = 3.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Left: Logo and Name
             Column(
                 modifier = Modifier
-                    .padding(5.dp)
-                    .clickable { navController.navigate("home")},
+                    .padding(4.dp)
+                    .clickable { navController.navigate("home") },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = "ストリエフン",
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier
-                        .padding(bottom = 2.dp)
+                    color = theme.textPrimary,
+                    modifier = Modifier.padding(bottom = 1.dp)
                 )
                 Text(
                     text = "STORYEFUN",
-                    fontSize = 15.sp,
-                    color = Color.Black.copy(alpha = 0.7f),
-                    modifier = Modifier
+                    fontSize = 13.sp,
+                    color = theme.textSecondary
                 )
             }
 
-            // Right: Icons for navigation
-            Row {
-
-
+            // Right: Icons and Coin Balance
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 IconButton(onClick = { navController.navigate("search") }) {
                     Icon(
                         Icons.Default.Search,
-                        contentDescription = "search",
-                        tint = Color.Black
+                        contentDescription = "Search",
+                        tint = theme.textPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color.White,
+                    modifier = Modifier.padding(vertical = 2.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = if (isLoading) "..." else coinBalance.toString(),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black,
+                            modifier = Modifier.padding(horizontal = 1.dp)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_coin),
+                            contentDescription = "Coin Balance",
+                            modifier = Modifier
+                                .size(12.dp)
+                                .align(Alignment.Top),
+                            tint = Color.DarkGray
+                        )
+
+                    }
+                }
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Deposit",
+                    tint = theme.textPrimary,
+                    modifier = Modifier.size(14.dp)
+                )
                 IconButton(onClick = { navController.navigate("profile") }) {
                     Icon(
                         Icons.Default.Person,
-                        contentDescription = "profile",
-                        tint = Color.Black
-                    )
-                }
-                IconButton(onClick = { navController.navigate("historicalTransaction") }) {
-                    Image(
-                        painter = painterResource(id = R.drawable.coin), // tên icon bạn import
-                        contentDescription = "historicalTransaction",
-                        modifier = Modifier.size(24.dp),
-                    )
-                }
-                IconButton(onClick = { navController.navigate("settings") }) {
-                    Icon(
-                        Icons.Default.Settings,
-                        contentDescription = "settings",
-                        tint = Color.Black
+                        contentDescription = "Profile",
+                        tint = theme.textPrimary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }

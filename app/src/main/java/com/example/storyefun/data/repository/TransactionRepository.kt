@@ -6,13 +6,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
-class TransactionRepository{
+class TransactionRepository {
     private val db = FirebaseFirestore.getInstance()
+    private val transactionsCollection = db.collection("transactions")
+
     suspend fun addTransaction(
         userID: String,
         coin: Int,
-        money:Double,
-    ):Result<Unit> {
+        money: Double
+    ): Result<Unit> {
         return try {
             val transactionData = hashMapOf(
                 "uid" to userID,
@@ -20,38 +22,50 @@ class TransactionRepository{
                 "money" to money,
                 "time" to System.currentTimeMillis()
             )
-            val Tran = db.collection("users")
-                .document(userID)
-                .collection("transactions")
-                .add(transactionData).await()
+            transactionsCollection
+                .add(transactionData)
+                .await()
+            Log.d("TransactionRepo", "Transaction added for userId=$userID, coin=$coin, money=$money")
             Result.success(Unit)
-        }catch (e: Exception){
+        } catch (e: Exception) {
+            Log.e("TransactionRepo", "Error adding transaction: ${e.message}", e)
             Result.failure(e)
         }
-
     }
-    suspend fun getTransactions(userId: String): Result<List<Transactions>> {
+
+    suspend fun getTransactions(): Result<List<Transactions>> {
         return try {
-            val snapshot = db.collection("users")
-                .document(userId)
-                .collection("transactions")
+            val snapshot = transactionsCollection
                 .orderBy("time", Query.Direction.DESCENDING)
                 .get()
                 .await()
             val transactions = snapshot.documents.mapNotNull { doc ->
-                doc.data?.let {
-                    Transactions(
-                        uid = it["uid"] as? String ?: "",
-                        coin = (it["coin"] as? Long)?.toInt() ?: it["coin"] as? Int ?: 0,
-                        money = (it["money"] as? Long)?.toDouble() ?: it["money"] as? Double ?: 0.0,
-                        time = it["time"] as? Long ?: 0L
-                    )
+                doc.data?.let { data ->
+                    try {
+                        Transactions(
+                            uid = data["uid"] as? String ?: "",
+                            coin = when (val coinValue = data["coin"]) {
+                                is Long -> coinValue.toInt()
+                                is Int -> coinValue
+                                else -> 0
+                            },
+                            money = when (val moneyValue = data["money"]) {
+                                is Long -> moneyValue.toDouble()
+                                is Double -> moneyValue
+                                else -> 0.0
+                            },
+                            time = data["time"] as? Long ?: 0L
+                        )
+                    } catch (e: Exception) {
+                        Log.w("TransactionRepo", "Error parsing transaction ${doc.id}: ${e.message}")
+                        null
+                    }
                 }
             }
-            Log.d("TransactionRepo", "Fetched ${transactions.size} transactions for userId=$userId")
+            Log.d("TransactionRepo", "Fetched ${transactions.size} transaction")
             Result.success(transactions)
         } catch (e: Exception) {
-            Log.e("TransactionRepo", "Error fetching transactions: ${e.message}")
+            Log.e("TransactionRepo", "Error fetching transactions: ${e.message}", e)
             Result.failure(e)
         }
     }

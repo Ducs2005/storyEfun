@@ -1,6 +1,5 @@
 package com.example.storyefun.ui.components
 
-import coil.compose.rememberImagePainter
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,15 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.storyefun.ui.theme.AppColors
+import coil.compose.AsyncImage
 import com.example.storyefun.R
-import com.example.storyefun.data.models.Book
-import com.example.storyefun.viewModel.BookViewModel
+import com.example.storyefun.ui.theme.AppColors
 
 @Composable
 fun CommentItem(
@@ -33,22 +30,25 @@ fun CommentItem(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Load image using Coil, default to local resource if null
-        val imagePainter = rememberImagePainter(
-            data = userImageUrl,
-            builder = {
-                crossfade(true)
-                fallback(R.drawable.ic_user) // fallback to a default image if URL is null or invalid
-            }
-        )
-
-        Image(
-            painter = imagePainter,
-            contentDescription = "User Avatar",
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-        )
+        if (userImageUrl.isNullOrBlank()) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_person),
+                contentDescription = "User Avatar",
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+            )
+        } else {
+            AsyncImage(
+                model = userImageUrl,
+                contentDescription = "User Avatar",
+                placeholder = painterResource(R.drawable.ic_person),
+                error = painterResource(R.drawable.ic_person),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 

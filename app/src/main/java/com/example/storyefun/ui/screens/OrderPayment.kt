@@ -1,4 +1,4 @@
-package com.example.storyefun.admin.ui
+package com.example.storyefun.ui.screens
 
 import android.content.Intent
 import android.os.Bundle
@@ -20,11 +20,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.storyefun.R
+import com.example.storyefun.admin.ui.PaymentNotification
 import com.example.storyefun.data.repository.TransactionRepository
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.TransactionViewModel
@@ -38,7 +42,6 @@ import vn.zalopay.sdk.ZaloPaySDK
 import vn.zalopay.sdk.listeners.PayOrderListener
 
 class OrderPayment : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,15 +53,16 @@ class OrderPayment : ComponentActivity() {
         // Khởi tạo ZaloPay SDK
         ZaloPaySDK.init(2553, Environment.SANDBOX)
 
-        val amount = intent.getIntExtra("amount", 0)  // Lấy số tiền từ Intent
-        val coin = intent.getIntExtra("coin", 0)      // Lấy số coin từ Intent
+        val amount = intent.getIntExtra("amount", 0)
+        val coin = intent.getIntExtra("coin", 0)
 
         setContent {
-            OrderPaymentScreen(amount, coin)  // Truyền dữ liệu vào màn hình
+            MaterialTheme {
+                OrderPaymentScreen(amount, coin)
+            }
         }
     }
 
-    // Sử dụng phương thức onNewIntent từ Activity thay vì ComponentActivity
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent?.let {
@@ -71,7 +75,7 @@ class OrderPayment : ComponentActivity() {
 fun OrderPaymentScreen(amount: Int, coin: Int) {
     val theme = LocalAppColors.current
     val context = LocalContext.current
-    val amountFormatted = String.format("%.0f", amount.toDouble())  // Chuyển số tiền sang định dạng chuỗi
+    val amountFormatted = String.format("%.0f", amount.toDouble())
     var paymentStatus by remember { mutableStateOf<String?>(null) }
 
     // Dữ liệu người dùng
@@ -81,16 +85,14 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
 
     val viewModel: TransactionViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 return TransactionViewModel(TransactionRepository(), uid ?: "") as T
             }
         }
     )
     val transactionStatus by viewModel.transactionStatus.collectAsState()
-    val db = FirebaseFirestore.getInstance()
-    val amountFommated = String.format("%.0f", amount.toDouble())
 
-    // Chạy effect để lấy thông tin người dùng từ Firebase
+    // Lấy thông tin người dùng
     LaunchedEffect(uid) {
         if (uid != null) {
             FirebaseFirestore.getInstance()
@@ -103,21 +105,19 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                 }
                 .addOnFailureListener {
                     userName = "Không thể lấy thông tin người dùng"
-                    coinBalance = 0 // hoặc hiển thị lỗi nếu không thể lấy thông tin người dùng
+                    coinBalance = 0
                 }
         }
     }
 
-    // Đợi cho đến khi `userName` có giá trị không null
     if (userName == null) {
-        // Hiển thị loading spinner trong khi đang tải thông tin
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFF5F5F5)),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color(0xFFFFB300)) // Màu cam cho spinner
+            CircularProgressIndicator(color = Color(0xFFFFB300))
         }
     } else {
         Column(
@@ -126,7 +126,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                 .background(Color.White),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header với gradient cam
+            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,7 +162,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                 }
             }
 
-            // Nội dung còn lại
+            // Nội dung
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -187,12 +187,23 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         fontSize = 20.sp,
                         color = Color(0xFF333333)
                     )
-                    Text(
-                        "$coinBalance Coin",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFF5722)
-                    )
+                    Row ()
+                    {
+                        Text(
+                            "${coinBalance ?: "Đang tải"}",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF5722)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_coin),
+                            contentDescription = "Coin Balance",
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.Top),
+                            tint = Color.Gray
+                        )
+                    }
                 }
 
                 // Thông tin nạp tiền
@@ -210,23 +221,31 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         fontSize = 20.sp,
                         color = Color(0xFF333333)
                     )
-                    Text(
-                        "Số coin: $coin Coin",
-                        fontSize = 20.sp,
-                        color = Color(0xFF333333)
-                    )
-                    Text(
-                        "Coin: $coin",
-                        fontSize = 20.sp,
-                        color = Color(0xFF333333)
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            "Số coin: +$coin",
+                            fontSize = 20.sp,
+                            color = Color(0xFF333333)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_coin),
+                            contentDescription = "Coin",
+                            modifier = Modifier
+                                .size(14.dp)
+                                .align(Alignment.Top),
+                            tint = Color.Gray
+                        )
+                    }
                 }
 
-                // Trạng thái thanh toán (nếu có)
+                // Trạng thái thanh toán
                 paymentStatus?.let {
                     Text(
                         text = it,
-                        color = Color(0xFFFFB300), // Màu cam cho trạng thái
+                        color = Color(0xFFFFB300),
                         fontSize = 16.sp,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -239,7 +258,9 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         text = it,
                         color = Color(0xFFFFB300),
                         fontSize = 16.sp,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp)
                     )
                 }
 
@@ -248,45 +269,35 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                     onClick = {
                         val orderApi = CreateOrder()
                         try {
-                            val data: JSONObject = orderApi.createOrder(amountFormatted)  // Gửi số tiền đã chọn
+                            val data: JSONObject = orderApi.createOrder(amountFormatted)
                             if (data.getString("return_code") == "1") {
                                 val token = data.getString("zp_trans_token")
                                 ZaloPaySDK.getInstance().payOrder(
                                     context as ComponentActivity,
                                     token,
-                                    "demozpdk://app",  // URL callback
+                                    "demozpdk://app",
                                     object : PayOrderListener {
-
                                         override fun onPaymentSucceeded(s: String?, s1: String?, s2: String?) {
                                             paymentStatus = "Thanh toán thành công"
-
-                                            // Cập nhật số dư coin vào Firestore
-                                            val uid = FirebaseAuth.getInstance().currentUser?.uid
                                             if (uid != null && coinBalance != null) {
                                                 val newCoin = coinBalance!! + coin
-                                                // này là thêm cái coin vào giao dịch bên collection
                                                 viewModel.addTransaction(coin, amount.toDouble())
-
-                                                // Cập nhật Firestore
                                                 FirebaseFirestore.getInstance()
                                                     .collection("users")
                                                     .document(uid)
                                                     .update("coin", newCoin)
                                                     .addOnSuccessListener {
                                                         Log.d("OrderPayment", "Cập nhật coin thành công: $newCoin")
-                                                        // Sau khi cập nhật Firestore thành công, chuyển đến màn hình thông báo
                                                         context.startActivity(Intent(context, PaymentNotification::class.java).apply {
                                                             putExtra("result", "Thanh toán thành công")
                                                         })
                                                     }
                                                     .addOnFailureListener {
-                                                        // Nếu có lỗi trong việc cập nhật Firestore, hiển thị thông báo lỗi
                                                         context.startActivity(Intent(context, PaymentNotification::class.java).apply {
                                                             putExtra("result", "Cập nhật coin thất bại")
                                                         })
                                                     }
                                             } else {
-                                                // Trường hợp không lấy được uid hoặc coinBalance
                                                 paymentStatus = "Lỗi khi lấy thông tin người dùng"
                                                 context.startActivity(Intent(context, PaymentNotification::class.java).apply {
                                                     putExtra("result", "Lỗi khi lấy thông tin người dùng")
@@ -331,10 +342,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             .fillMaxSize()
                             .background(
                                 brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFFFFB300),
-                                        Color(0xFFFFA000)
-                                    ) // Gradient cam
+                                    colors = listOf(Color(0xFFFFB300), Color(0xFFFFA000))
                                 )
                             ),
                         contentAlignment = Alignment.Center

@@ -1,4 +1,4 @@
-package com.example.storyefun.admin.ui
+package com.example.storyefun.ui.screens
 
 import android.content.Intent
 import android.os.Bundle
@@ -20,14 +20,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.storyefun.R
 import com.example.storyefun.data.AmountOption
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.google.firebase.auth.FirebaseAuth
@@ -83,13 +84,11 @@ fun DespositeScreen() {
         }
     }
 
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 brush = Brush.verticalGradient(
-//                    colors = listOf(Color(0xFFFFF3E0), Color(0xFFFFE0B2))
                     colors = listOf(Color(0xFFF5F5F5), Color(0xFFEAEAEA))
                 )
             )
@@ -101,9 +100,11 @@ fun DespositeScreen() {
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Header
-            Row (
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
                 IconButton(onClick = {
                     (context as? ComponentActivity)?.onBackPressedDispatcher?.onBackPressed()
@@ -111,7 +112,7 @@ fun DespositeScreen() {
                     Icon(
                         Icons.Default.ArrowBack,
                         contentDescription = "Back",
-                        tint  = theme.textPrimary
+                        tint = theme.textPrimary
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -122,7 +123,6 @@ fun DespositeScreen() {
                     color = theme.textPrimary
                 )
             }
-
 
             // Grid of amount options
             LazyVerticalGrid(
@@ -155,12 +155,27 @@ fun DespositeScreen() {
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Text(
-                        text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."} coin",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF424242)
+                    Row (
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     )
+                    {
+                        Text(
+                            text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF424242)
+                        )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_coin),
+                            contentDescription = "Coin Balance",
+                            modifier = Modifier
+                                .size(12.dp)
+                                .align(Alignment.Top),
+                            tint = Color.Gray
+                        )
+                    }
+
                 }
             }
 
@@ -192,8 +207,6 @@ fun DespositeScreen() {
                         .fillMaxSize()
                         .background(
                             brush = Brush.horizontalGradient(
-//                                colors = listOf(Color(0xFFFFA726), Color(0xFFF57C00))
-//                                colors = listOf(Color(0xFFFFA726), Color(0xFFFFA726))
                                 colors = listOf(Color(0xFFFFB300), Color(0xFFFFA000))
                             ),
                             shape = RoundedCornerShape(12.dp)
@@ -226,7 +239,6 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
             )
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
-//                color = if (isSelected) Color(0xFFF57C00) else Color.Transparent,
                 color = if (isSelected) Color(0xFFFFCA28) else Color.Transparent,
                 shape = RoundedCornerShape(12.dp)
             ),
@@ -251,13 +263,27 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFF57C00)
                 )
-                Text(
-                    text = "+${option.coin} Coin",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF616161),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.padding(top = 4.dp)
-                )
+                ) {
+                    Text(
+                        text = "+${option.coin}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF616161)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_coin),
+                        contentDescription = "Coin",
+                        modifier = Modifier
+                            .size(14.dp)
+                            .align(Alignment.Top),
+                        tint = Color.Gray
+                    )
+                }
             }
         }
     }

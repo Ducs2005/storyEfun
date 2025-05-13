@@ -2,6 +2,7 @@ package com.example.storyefun.ui.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -15,15 +16,18 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.AsyncImage
+import com.example.storyefun.R
 import com.example.storyefun.data.models.Book
+import com.example.storyefun.ui.theme.LocalAppColors
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
@@ -33,6 +37,7 @@ fun PopularBookScreen(navController: NavController) {
     val firestore = Firebase.firestore
     val books = remember { mutableStateListOf<Book>() }
     val context = LocalContext.current
+    val theme = LocalAppColors.current // Access theme colors
 
     LaunchedEffect(Unit) {
         firestore.collection("books")
@@ -53,14 +58,25 @@ fun PopularBookScreen(navController: NavController) {
             }
     }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .background(theme.background) // Use theme.background
+    ) {
         // Header Section
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Popular books", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Popular books",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = theme.textPrimary // Use theme.textPrimary
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -87,22 +103,32 @@ fun PopularBookScreen(navController: NavController) {
 
 @Composable
 fun PopularCard(title: String, author: String, imageUrl: String, onClick: () -> Unit) {
+    val theme = LocalAppColors.current // Access theme colors
+
     Card(
         modifier = Modifier
             .width(120.dp)
             .wrapContentHeight()
             .clickable { onClick() },
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = theme.backgroundColor), // Use theme.backgroundColor
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Add slight elevation
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = rememberImagePainter(imageUrl),
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp) // Add padding inside card
+        ) {
+            AsyncImage(
+                model = imageUrl,
                 contentDescription = title,
                 modifier = Modifier
                     .height(180.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.placeholder),
+                error = painterResource(R.drawable.error)
             )
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -111,12 +137,14 @@ fun PopularCard(title: String, author: String, imageUrl: String, onClick: () -> 
                 text = title,
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                maxLines = 1,)
+                color = theme.textPrimary, // Use theme.textPrimary
+                maxLines = 1
+            )
             Text(
                 text = author,
-                color = Color.Gray,
+                color = theme.textSecondary, // Use theme.textSecondary
                 fontSize = 13.sp,
-                maxLines = 1,
+                maxLines = 1
             )
         }
     }

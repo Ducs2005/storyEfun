@@ -40,7 +40,7 @@ class ChapterRepository {
                                 title = it["title"] as? String ?: "",
                                 order = it["order"] as? Long ?: 0,
                                 content = (it["content"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
-                                locked = it["locked"] as? Boolean ?: false
+                                price = it["price"] as? Int ?: 0
                             )
                         }
                     }

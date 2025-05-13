@@ -1,7 +1,6 @@
 package com.example.storyefun.ui.theme
 
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -14,12 +13,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import com.example.storyefun.R
 
 // Define App Colors
 data class AppColors(
-    val background: Color,  // ✅ Đổi thành lambda @Composable
+    val background: Color,
     val textPrimary: Color,
     val textSecondary: Color,
     val buttonBackground: Color,
@@ -31,14 +28,12 @@ data class AppColors(
     val header: Color,
     val buttonOrange: Color,
     val backOrange: Color
-
 )
 
 // Light Theme
 val LightColors = AppColors(
-//    background = { painterResource(id = R.drawable.background) },  // ✅ Gọi trong @Composable lambda
     background = Color.White,
-    header = Color(0xFFF4A261),
+    header = Color(0xFFFCE0CA), // Updated to a brighter orange
     textPrimary = Color.Black,
     textSecondary = Color.Gray,
     buttonBackground = Color.Red,
@@ -46,17 +41,15 @@ val LightColors = AppColors(
     backgroundColor = Color.White,
     tagColor = Color.DarkGray,
     backgroundContrast1 = Color.Black,
-    backgroundContrast2 = Color.DarkGray,
+    backgroundContrast2 = Color(0xFF4D4D44),
     buttonOrange = Color(0xFFFFA500),
     backOrange = Color(0xFFFF7043)
-
 )
 
 // Dark Theme
 val DarkColors = AppColors(
-//    background = { painterResource(id = R.drawable.darkbackground) }, // ✅ Gọi trong @Composable lambda
     background = Color.Black,
-    header = Color.Gray,
+    header = Color(0xFF3B390A), // Updated to a deeper gray
     textPrimary = Color.White,
     textSecondary = Color.Gray,
     buttonBackground = Color.Red,
@@ -65,9 +58,8 @@ val DarkColors = AppColors(
     tagColor = Color.Gray,
     backgroundContrast1 = Color.White,
     backgroundContrast2 = Color.Gray,
-    buttonOrange = Color(0xFFFFA500) ,
-
-            backOrange = Color(0xFFFF7043)
+    buttonOrange = Color(0xFFFFA500),
+    backOrange = Color(0xFFFF7043)
 )
 
 // Create a Local variable to store colors
@@ -76,10 +68,9 @@ val LocalAppColors = staticCompositionLocalOf { LightColors }
 // Function to apply theme
 @Composable
 fun AppTheme(
-    darkTheme: Boolean,  // Biến này quyết định dùng Light hay Dark theme
+    darkTheme: Boolean,
     content: @Composable () -> Unit
 ) {
-    Log.d("App them upadte", " update")
     val colors = remember(darkTheme) {
         if (darkTheme) DarkColors else LightColors
     }
@@ -91,8 +82,6 @@ fun AppTheme(
     }
 }
 
-
-
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
@@ -103,22 +92,11 @@ private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
     tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable
 fun ZalopayTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -127,7 +105,6 @@ fun ZalopayTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

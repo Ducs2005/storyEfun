@@ -62,16 +62,13 @@ fun FavouriteScreen(
     AppTheme(darkTheme = isDarkMode) {
         Scaffold(
             topBar = {
-//                Header(
-//                    text = searchText,
-//                    active = active,
-//                    onQueryChange = { searchText = it },
-//                    onActiveChange = { active = it },
-//                    navController = navController
-//                )
+                Header(
+                    navController = navController,
+                    themeViewModel = themeViewModel
+                )
             },
             bottomBar = {
-                BottomBar(navController, "favourite")
+                BottomBar(navController, "favourite",themeViewModel = themeViewModel)
             }
         ) { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {

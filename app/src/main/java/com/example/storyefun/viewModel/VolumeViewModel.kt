@@ -57,5 +57,21 @@ class VolumeViewModel(
     fun setToastMessage(message: String) {
         _toastMessage.value = message
     }
+    fun deleteVolume(bookId: String, volumeId: String, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val success = repository.deleteVolume(bookId, volumeId)
+            _isLoading.value = false
+
+            if (success) {
+                _toastMessage.value = "Đã xóa volume thành công"
+                // Cập nhật lại danh sách volumes sau khi xóa
+                _volumes.value = repository.loadVolumes(bookId)
+                onSuccess()
+            } else {
+                _toastMessage.value = "Lỗi khi xóa volume"
+            }
+        }
+    }
 }
 

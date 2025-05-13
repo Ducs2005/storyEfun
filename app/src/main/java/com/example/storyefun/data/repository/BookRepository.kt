@@ -53,8 +53,12 @@ class BookRepository {
                     if (volume != null) {
                         // Fetch chapters for this volume
                         val chaptersSnapshot = volumeDoc.reference.collection("chapters").get().await()
-                        val chapterList = chaptersSnapshot.mapNotNull { it.toObject(Chapter::class.java) }
-
+                        val chapterList = chaptersSnapshot.mapNotNull { doc ->
+                            val chapter = doc.toObject(Chapter::class.java)
+                            chapter?.apply {
+                                id = doc.id // <- manually assign document ID
+                            }
+                        }
                         volume.chapters = chapterList
                         volumeList.add(volume)
                     }
@@ -215,6 +219,20 @@ class BookRepository {
             emptyList()
         }
     }
+    suspend fun deleteVolume(bookId: String, volumeId: String): Boolean {
+        return try {
+            db.collection("books")
+                .document(bookId)
+                .collection("volumes")
+                .document(volumeId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("VolumeRepo", "deleteVolume error: ${e.message}")
+            false
+        }
+    }
 
 // CHAPTER
 suspend fun getNextChapterOrder(bookId: String, volumeID: String): Long {
@@ -259,7 +277,7 @@ suspend fun getNextChapterOrder(bookId: String, volumeID: String): Long {
                             title = data["title"] as? String ?: "",
                             content = (data["content"] as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
                             order = data["order"] as? Long ?: 0L,
-                            locked = data["locked"] as? Boolean ?: false
+                            price = data["price"] as? Int ?: 0
                         )
                     }
                     onChaptersLoaded(chapters)
@@ -284,11 +302,11 @@ suspend fun getNextChapterOrder(bookId: String, volumeID: String): Long {
             emptyList() // Nếu có lỗi, trả về danh sách trống
         }
     }
-
     fun addChapter(
         bookId: String,
         volumeId: String,
         title: String,
+        price: Int,
         imageUrls: List<String>,
         onComplete: () -> Unit
     ) {
@@ -297,28 +315,33 @@ suspend fun getNextChapterOrder(bookId: String, volumeID: String): Long {
             .collection("volumes").document(volumeId)
             .collection("chapters")
 
-        val chapterData = hashMapOf(
-            "title" to title,
-            "content" to imageUrls,
-            "order" to System.currentTimeMillis(),
-            "createdAt" to System.currentTimeMillis(),
-            "locked" to false
-        )
+        chaptersRef.orderBy("order", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                // Lấy order lớn nhất hiện có, nếu không có thì dùng 1
+                val maxOrder = snapshot.documents.firstOrNull()?.getLong("order") ?: 0L
+                val newOrder = maxOrder + 1
 
-        chaptersRef.add(chapterData)
-            .addOnSuccessListener {
-                chaptersRef.orderBy("order").get().addOnSuccessListener { snapshot ->
-                    val chapterDocs = snapshot.documents
-                    if (chapterDocs.size > 2) {
-                        chapterDocs.drop(2).forEach { doc ->
-                            chaptersRef.document(doc.id).update("locked", true)
-                        }
+                val chapterData = hashMapOf(
+                    "title" to title,
+                    "content" to imageUrls,
+                    "order" to newOrder,
+                    "price" to price,
+                    "createdAt" to System.currentTimeMillis(),
+                    "locked" to false
+                )
+
+                chaptersRef.add(chapterData)
+                    .addOnSuccessListener {
+                        onComplete()
                     }
-                    onComplete()
-                }
+                    .addOnFailureListener { e ->
+                        println("Error adding chapter: ${e.message}")
+                    }
             }
             .addOnFailureListener { e ->
-                println("Error: ${e.message}")
+                println("Error getting max order: ${e.message}")
             }
     }
 
@@ -345,7 +368,22 @@ suspend fun getNextChapterOrder(bookId: String, volumeID: String): Long {
             })
             .dispatch()
     }
-
+    suspend fun deleteChapter(bookId: String, volumeId: String, chapterId: String): Boolean {
+        return try {
+            db.collection("books")
+                .document(bookId)
+                .collection("volumes")
+                .document(volumeId)
+                .collection("chapters")
+                .document(chapterId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("ChapterRepo", "deleteChapter error: ${e.message}")
+            false
+        }
+    }
 
     suspend fun valueIncrease(type: String, bookId: String) {
         try {

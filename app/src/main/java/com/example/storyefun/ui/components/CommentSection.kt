@@ -1,5 +1,7 @@
 package com.example.storyefun.ui.components
+
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,10 +27,14 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CommentSection(theme: AppColors, bookId: String, comments: List<Comment>) {
+fun CommentSection(theme: AppColors, bookId: String, initialComments: List<Comment>) {
     var newComment by remember { mutableStateOf("") }
     val currentUser: FirebaseUser? = FirebaseAuth.getInstance().currentUser
     val commentRepository: CommentRepository = CommentRepository()
+    val context = LocalContext.current
+    // Local mutable state to hold comments
+    var comments by remember { mutableStateOf(initialComments) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -80,48 +87,48 @@ fun CommentSection(theme: AppColors, bookId: String, comments: List<Comment>) {
         Button(
             onClick = {
                 if (newComment.isNotBlank()) {
-                    // Lấy người dùng hiện tại từ FirebaseAuth
                     val currentUser = FirebaseAuth.getInstance().currentUser
-                    val currentDate = getCurrentDate() // Lấy thời gian hiện tại theo định dạng dd/MM/yyyy
+                    val currentDate = getCurrentDate()
 
                     if (currentUser != null) {
-                        // Tạo đối tượng Comment
                         val newCommentData = Comment(
-                            userId = currentUser.uid, // hoặc tạo ID phù hợp nếu cần
-                            userName = currentUser.displayName ?: "Bạn", // Tên người dùng từ Firebase
-                            date = currentDate, // Ngày hiện tại
+                            userId = currentUser.uid,
+                            userName = currentUser.displayName ?: "Bạn",
+                            date = currentDate,
                             content = newComment.trim(),
-                            type = "text", // Loại bình luận (text, sticker, v.v.)
-                            userImageUrl = currentUser.photoUrl.toString(),
+                            type = "text",
+                            userImageUrl = currentUser.photoUrl?.toString().toString()
                         )
 
-                        // Gọi hàm thêm bình luận từ repository
                         CoroutineScope(Dispatchers.Main).launch {
                             try {
-                                commentRepository.addComment(bookId,newCommentData) // Gọi repository để thêm comment
-                                newComment = "" // Reset ô nhập bình luận sau khi gửi
+                                commentRepository.addComment(bookId, newCommentData)
+                                // Add the new comment to the local list
+                                comments = comments + newCommentData
+                                newComment = "" // Reset the text field
+                                Toast.makeText(context, "Bình luận đã được gửi", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
-                                // Xử lý lỗi nếu có (ví dụ: lỗi kết nối mạng hoặc Firestore gặp vấn đề)
-                                Log.e("Error", "Failed to add comment: ${e.message}")
+                                Log.e("CommentSection", "Failed to add comment: ${e.message}")
+                                Toast.makeText(context, "Không thể gửi bình luận", Toast.LENGTH_SHORT).show()
                             }
                         }
                     } else {
-                        // Nếu không có người dùng đang đăng nhập, thông báo lỗi hoặc xử lý
-                        Log.e("Error", "User is not authenticated")
+                        Log.e("CommentSection", "User is not authenticated")
+                        Toast.makeText(context, "Vui lòng đăng nhập để bình luận", Toast.LENGTH_SHORT).show()
                     }
                 }
             },
             modifier = Modifier.align(Alignment.End),
             colors = ButtonDefaults.buttonColors(
-                containerColor = theme.buttonBackground,      // Màu nền của nút
-                contentColor = theme.textPrimary          // Màu chữ (nếu cần)
+                containerColor = theme.buttonBackground,
+                contentColor = theme.textPrimary
             )
         ) {
             Text("Gửi")
         }
     }
-
 }
+
 fun getCurrentDate(): String {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return dateFormat.format(Date())

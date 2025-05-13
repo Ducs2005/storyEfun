@@ -1,9 +1,9 @@
 package com.example.storyefun.ui.components
 
-
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,15 +15,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.unit.*
-import kotlinx.coroutines.delay
-import androidx.navigation.NavController
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.*
+import androidx.navigation.NavController
+import com.example.storyefun.ui.theme.LocalAppColors
+import com.example.storyefun.viewModel.ThemeViewModel
+import kotlinx.coroutines.delay
 
 data class Item(
     val icon: ImageVector,
@@ -33,60 +33,63 @@ data class Item(
     val size: IntSize = IntSize.Zero
 )
 
-
 @Composable
-fun BottomBar(navController: NavController, currentRoute: String) {
+fun BottomBar(navController: NavController, currentRoute: String, themeViewModel: ThemeViewModel) {
     val configuration = LocalConfiguration.current
+    val theme = LocalAppColors.current // Access theme colors
+
     val items = remember {
         mutableStateListOf(
             Item(
                 icon = Icons.Rounded.Home,
-                color = Color(0xFF660F24),
+                color = theme.buttonOrange, // Use theme.buttonOrange
                 route = "home"
             ),
             Item(
                 icon = Icons.Rounded.AccountBox,
-                color = Color(0xFF660F24),
-                route = "category",
+                color = theme.buttonOrange,
+                route = "category"
             ),
             Item(
                 icon = Icons.Rounded.AddCircle,
-                color = Color(0xFF660F24),
+                color = theme.buttonOrange,
                 route = "upload"
             ),
             Item(
                 icon = Icons.Rounded.FavoriteBorder,
-                color = Color(0xFF660F24),
+                color = theme.buttonOrange,
                 route = "favourite"
             ),
             Item(
                 icon = Icons.Rounded.Settings,
-                color = Color(0xFF660F24),
+                color = theme.buttonOrange,
                 route = "setting"
             )
         )
     }
-    val indicatorWidth = (configuration.screenWidthDp/items.count())/2
-    val selectedIndex = remember(currentRoute) {
+    val indicatorWidth = (configuration.screenWidthDp / items.count()) / 2
+    var selectedIndex = remember(currentRoute) {
         mutableStateOf(
-            items.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+            items.indexOfFirst { it.route == currentRoute }.coerceAtLeast(1)
         )
     }
 
-    val indicatorOffset by animateIntOffsetAsState(targetValue = IntOffset(
-        items[selectedIndex.value].offset.x.toInt()+(items[selectedIndex.value].size.width/4)-(items.count()*2)-2,
-        15
-    ),
+
+    val indicatorOffset by animateIntOffsetAsState(
+        targetValue = IntOffset(
+            items[selectedIndex.value].offset.x.toInt() + (items[selectedIndex.value].size.width / 4) - (items.count() * 2) - 2,
+            15
+        ),
         animationSpec = tween(400)
     )
-    val infiniteTrasition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition()
     val indicatorColor by animateColorAsState(
         targetValue = items[selectedIndex.value].color,
         animationSpec = tween(500)
     )
-    val indicatorFlashingColor by infiniteTrasition.animateFloat(
-        initialValue = .7f,
-        targetValue = .6f,
+    val indicatorFlashingColor by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 0.6f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000),
             repeatMode = RepeatMode.Reverse
@@ -97,20 +100,19 @@ fun BottomBar(navController: NavController, currentRoute: String) {
         mutableStateOf(false)
     }
     LaunchedEffect(switching.value) {
-        if (switching.value){
+        if (switching.value) {
             delay(250)
             switching.value = false
         }
     }
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .shadow(8.dp, RoundedCornerShape(10.dp))
-        .clip(
-            RoundedCornerShape(0.dp)
-        )
-        .background(Color(0xF7FFFFFF))
-    ){
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            //.shadow(8.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(0.dp))
+            .background(theme.backgroundColor) // Use theme.backgroundColor
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,7 +124,7 @@ fun BottomBar(navController: NavController, currentRoute: String) {
                     selectedIndex.value = index
                 }
                 val isSelected = selectedIndex.value == index
-                val iconTintColor = if (isSelected) Color(0xFF660F24) else Color.Gray
+                val iconTintColor = if (isSelected) theme.buttonOrange else theme.textSecondary // Use theme colors
 
                 Box(
                     modifier = Modifier
@@ -155,23 +157,28 @@ fun BottomBar(navController: NavController, currentRoute: String) {
         }
 
         Column(
-            modifier = Modifier.offset{
+            modifier = Modifier.offset {
                 indicatorOffset
             },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(modifier = Modifier.shadow(
-                2.dp,
-                CircleShape,
-                ambientColor = indicatorColor,
-                spotColor = indicatorColor
+            Box(
+                modifier = Modifier
+                    .shadow(
+                        2.dp,
+                        CircleShape,
+                        ambientColor = indicatorColor,
+                        spotColor = indicatorColor
+                    )
+                    .height(3.dp)
+                    .width(indicatorWidth.dp)
+                    .clip(CircleShape)
+                    .background(indicatorColor)
             )
-                .height(3.dp)
-                .width(indicatorWidth.dp)
-                .clip(CircleShape)
-                .background(indicatorColor))
-            AnimatedVisibility(visible = !switching.value, enter = expandVertically() + fadeIn(),
+            AnimatedVisibility(
+                visible = !switching.value,
+                enter = expandVertically() + fadeIn(),
                 exit = shrinkHorizontally() + fadeOut()
             ) {
                 Box(
@@ -189,15 +196,11 @@ fun BottomBar(navController: NavController, currentRoute: String) {
                                 path = path,
                                 brush = Brush.verticalGradient(
                                     listOf(
-                                        indicatorColor.copy(
-                                            alpha = indicatorFlashingColor - .2f
-                                        ),
-                                        indicatorColor.copy(
-                                            alpha = indicatorFlashingColor-.4f
-                                        ),
+                                        indicatorColor.copy(alpha = indicatorFlashingColor - 0.2f),
+                                        indicatorColor.copy(alpha = indicatorFlashingColor - 0.4f),
                                         Color.Transparent
                                     )
-                                ),
+                                )
                             )
                         }
                 )

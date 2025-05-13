@@ -11,7 +11,6 @@ import com.example.storyefun.ui.screens.*
 
 import com.example.storyefun.admin.ui.*
 import com.example.storyefun.ui.UserManageScreen
-import com.example.storyefun.viewModel.PostViewModel
 
 
 //import com.example.storyefun.ui.AddChapterScreen
@@ -59,7 +58,7 @@ sealed class Screen(val route: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewModel, postViewModel: PostViewModel) {
+fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewModel) {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val start : String
@@ -82,7 +81,7 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
 //        startDestination = Screen.Upload.route
     ) {
 //        composable(Screen.Home.route) { HomeScreen(navController, themeViewModel) }
-        composable(Screen.Home.route) { HomeBookScreen(navController, postViewModel) }
+        composable(Screen.Home.route) { HomeBookScreen(navController) }
         composable("bookDetail/{bookId}") { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId") ?: "Unknown"
             BookDetailScreen(navController, bookId, themeViewModel)
