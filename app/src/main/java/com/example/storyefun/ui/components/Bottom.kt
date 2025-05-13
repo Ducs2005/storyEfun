@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.*
 import kotlinx.coroutines.delay
 import androidx.navigation.NavController
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material3.Text
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import com.example.storyefun.viewModel.ThemeViewModel
 
 data class Item(
     val icon: ImageVector,
@@ -35,7 +35,7 @@ data class Item(
 
 
 @Composable
-fun BottomBar(navController: NavController, currentRoute: String) {
+fun BottomBar(navController: NavController, currentRoute: String, themeViewModel: ThemeViewModel) {
     val configuration = LocalConfiguration.current
     val items = remember {
         mutableStateListOf(

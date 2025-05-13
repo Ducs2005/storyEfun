@@ -82,7 +82,7 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
 //        startDestination = Screen.Upload.route
     ) {
 //        composable(Screen.Home.route) { HomeScreen(navController, themeViewModel) }
-        composable(Screen.Home.route) { HomeBookScreen(navController, postViewModel) }
+        composable(Screen.Home.route) { HomeBookScreen(navController, postViewModel, themeViewModel) }
         composable("bookDetail/{bookId}") { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId") ?: "Unknown"
             BookDetailScreen(navController, bookId, themeViewModel)
@@ -105,11 +105,11 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
         composable(Screen.Upload.route) { UploadScreen(navController) }
         composable(Screen.Favourite.route) { FavouriteScreen(themeViewModel, navController) }
         composable(Screen.Setting.route) { SettingScreen(navController, themeViewModel) }
-        composable(Screen.CategoryList.route) { CategoriesScreen(navController) }
-        composable(Screen.Desposite.route) { DespositeScreen() }
+        composable(Screen.CategoryList.route) { CategoriesScreen(navController, themeViewModel) }
+//        composable(Screen.Desposite.route) { DespositeScreen() }
         composable(Screen.Coin.route) { CoinScreen(navController) }
         composable(Screen.Search.route) { SearchScreen(navController) }
-        composable(Screen.AllBook.route) { AllBookScreen(navController) }
+        composable(Screen.AllBook.route) { AllBookScreen(navController, themeViewModel) }
         composable(Screen.HistoricalTransaction.route) { HistoricalTransaction(navController) }
 
 
@@ -146,9 +146,9 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
         composable(Screen.ProductOrder.route) {
             ProductOrderScreen()
         }
-        composable(Screen.Desposite.route) {
-            DespositeScreen()
-        }
+//        composable(Screen.Desposite.route) {
+////            DespositeScreen()
+//        }
         composable(Screen.RevenueStatistics.route) {
             RevenueStatisticsScreen(navController)
         }

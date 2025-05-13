@@ -1,6 +1,4 @@
 package com.example.storyefun.ui.screens
-import android.content.res.Resources.Theme
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,7 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -35,7 +32,6 @@ import com.example.storyefun.R
 import com.example.storyefun.ui.theme.AppColors
 import com.example.storyefun.data.models.Book
 import com.example.storyefun.ui.components.BottomBar
-import com.example.storyefun.ui.components.Header
 import com.example.storyefun.ui.theme.AppTheme
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.BookViewModel
@@ -71,7 +67,7 @@ fun FavouriteScreen(
 //                )
             },
             bottomBar = {
-                BottomBar(navController, "favourite")
+                BottomBar(navController, "favourite", themeViewModel)
             }
         ) { paddingValues ->
             Box(modifier = Modifier.fillMaxSize()) {

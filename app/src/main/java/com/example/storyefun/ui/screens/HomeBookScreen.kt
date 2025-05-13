@@ -26,29 +26,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
 import com.example.storyefun.ui.components.BottomBar
 import com.example.storyefun.ui.components.Header
-import com.example.storyefun.viewModel.AudioBookViewModel
+import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.PostViewModel
+import com.example.storyefun.viewModel.ThemeViewModel
 
 @ExperimentalMaterial3Api
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeBookScreen(
-//    themeViewModel: ThemeViewModel
-    navController: NavHostController,
-    postViewModel: PostViewModel
+    navController: NavController,
+    postViewModel: PostViewModel,
+    themeViewModel: ThemeViewModel
 ){
-//    val isDarkMode by themeViewModel.isDarkTheme.collectAsState()
+    val theme = LocalAppColors.current
 
     Scaffold(
         topBar = {
-            Header(navController = navController)
+            Header(navController = navController, themeViewModel = themeViewModel)
         },
-        bottomBar = { BottomBar(navController, "home") }
+        bottomBar = { BottomBar(navController, "home", themeViewModel = themeViewModel) },
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -68,7 +68,7 @@ fun HomeBookScreen(
 }
 
 @Composable
-fun BookTabScreen(navController: NavHostController, postViewModel: PostViewModel) {
+fun BookTabScreen(navController: NavController, postViewModel: PostViewModel) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("Books", "Audio books")
 
