@@ -96,6 +96,47 @@ class BookRepository {
             return null
         }
     }
+    fun addNovelChapter(
+        bookId: String,
+        volumeId: String,
+        title: String,
+        price: Int,
+        content: String,
+        onComplete: () -> Unit
+    ) {
+        val chaptersRef = db.collection("books")
+            .document(bookId)
+            .collection("volumes").document(volumeId)
+            .collection("chapters")
+
+        chaptersRef.orderBy("order", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val maxOrder = snapshot.documents.firstOrNull()?.getLong("order") ?: 0L
+                val newOrder = maxOrder + 1
+
+                val chapterData = hashMapOf(
+                    "title" to title,
+                    "content" to listOf(content), // Store novel content as a single-item list for consistency
+                    "order" to newOrder,
+                    "price" to price,
+                    "createdAt" to System.currentTimeMillis(),
+                    "locked" to false
+                )
+
+                chaptersRef.add(chapterData)
+                    .addOnSuccessListener {
+                        onComplete()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("ChapterRepo", "Error adding novel chapter: ${e.message}")
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ChapterRepo", "Error getting max order for novel chapter: ${e.message}")
+            }
+    }
 
     fun getBookByUser(): LiveData<List<Book>> {
         val liveData = MutableLiveData<List<Book>>()
