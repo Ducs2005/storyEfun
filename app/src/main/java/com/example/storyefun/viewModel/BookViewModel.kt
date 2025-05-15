@@ -2,7 +2,9 @@ package com.example.storyefun.viewModel
 
 import android.util.Log
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,6 +12,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.storyefun.data.models.Book
 import com.example.storyefun.data.models.Chapter
 import com.example.storyefun.data.repository.BookRepository
+import com.example.storyefun.utils.downloadAndExtractDocx
+import com.example.storyefun.utils.downloadTextFile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
 import com.google.firebase.Firebase
@@ -39,6 +43,9 @@ class BookViewModel : ViewModel() {
 
     private val _unlockedChapterIds = MutableStateFlow<List<String>>(emptyList())
     val unlockedChapterIds: StateFlow<List<String>> = _unlockedChapterIds
+
+    var currentParagraphIndex by mutableStateOf(0)
+    var isPlaying by mutableStateOf(false)
 
     init {
         viewModelScope.launch {
@@ -222,4 +229,33 @@ class BookViewModel : ViewModel() {
             loadUnlockedChapterIds()
         }
     }
+
+    suspend  fun getParagraphs(fileUrls: List<String>): List<String> {
+        // Process only the first file for simplicity
+        val url = fileUrls.firstOrNull() ?: return emptyList()
+        return try {
+            if (url.endsWith(".txt")) {
+                downloadTextFile(url).split("\n\n").filter { it.isNotBlank() }
+            } else if (url.endsWith(".docx")) {
+                downloadAndExtractDocx(url).split("\n\n").filter { it.isNotBlank() }
+            } else {
+                listOf("Chưa hỗ trợ định dạng này: $url")
+            }
+        } catch (e: Exception) {
+            Log.e("BookViewModel", "Failed to load paragraphs: ${e.message}")
+            listOf("Lỗi tải file: ${e.message}")
+        }
+    }
+
+
+
+
+    fun updateParagraphIndex(newIndex: Int) {
+        currentParagraphIndex = newIndex
+    }
+
+    fun setIsPlaying(value: Boolean) {
+        isPlaying = value
+    }
+
 }

@@ -5,5 +5,6 @@ data class Volume(
     var name: String = "",
     var title: String = "",
     val order: Long = 0,
-    var chapters: List<Chapter> = emptyList()
+    var chapters: List<Chapter> = emptyList(),
+
 )
