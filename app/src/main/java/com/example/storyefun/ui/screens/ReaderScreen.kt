@@ -71,6 +71,9 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import com.example.storyefun.utils.rememberTextToSpeech
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -944,51 +947,96 @@ fun NovelContent(
         }
     }
 }
-
-
 @Composable
 fun MangaContent(imageUrls: List<String>) {
+    var currentIndex by remember { mutableStateOf(0) }
+    // Reset to first page when imageUrls (i.e., chapter) changes
+    LaunchedEffect(imageUrls) {
+        currentIndex = 0
+    }
+    val theme = LocalAppColors.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(theme.backgroundColor)
+    ) {
+        ZoomableImage(
+            imageUrl = imageUrls[currentIndex],
+            onTapLeft = {
+                if (currentIndex > 0) currentIndex--
+            },
+            onTapRight = {
+                if (currentIndex < imageUrls.lastIndex) currentIndex++
+            }
+        )
+
+        // Page indicator
+        Text(
+            text = "${currentIndex + 1} / ${imageUrls.size}",
+            color = Color.White,
+            fontSize = 14.sp,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .background(Color.Black.copy(alpha = 0.5f), shape = RoundedCornerShape(8.dp))
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun ZoomableImage(
+    imageUrl: String,
+    onTapLeft: () -> Unit,
+    onTapRight: () -> Unit
+) {
     val scale = remember { Animatable(1f) }
     val offsetX = remember { Animatable(0f) }
-    var offsetY by remember { mutableStateOf(0f) }
+    val offsetY = remember { Animatable(0f) }
     val coroutineScope = rememberCoroutineScope()
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
-    val screenWidthPx = with(LocalDensity.current) { screenWidthDp.toPx() }
 
-    val isZoomed = scale.value > 1f
-    val verticalScrollState = rememberScrollState()
-
-    var totalContentHeightDp by remember { mutableStateOf(0.dp) }
+    val imageSize = remember { mutableStateOf(IntSize.Zero) }
+    val configuration = LocalConfiguration.current
     val density = LocalDensity.current
+
+    val screenSize = remember {
+        IntSize(
+            with(density) { configuration.screenWidthDp.dp.toPx().toInt() },
+            with(density) { configuration.screenHeightDp.dp.toPx().toInt() }
+        )
+    }
+
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTransformGestures { _, pan, zoom, _ ->
-                    coroutineScope.launch {
-                        val newScale = (scale.value * zoom).coerceIn(1f, 5f)
-                        scale.snapTo(newScale)
+                detectTransformGestures(
+                    onGesture = { _, pan, zoom, _ ->
+                        coroutineScope.launch {
+                            val newScale = (scale.value * zoom).coerceIn(1f, 5f)
+                            scale.snapTo(newScale)
 
-                        if (newScale > 1f) {
-                            val contentWidth = screenWidthPx * newScale
-                            val contentHeight = with(density) { totalContentHeightDp.toPx() } * newScale
+                            val contentWidth = imageSize.value.width * newScale
+                            val contentHeight = imageSize.value.height * newScale
 
-                            val maxOffsetX = ((contentWidth - screenWidthPx) / 2f).coerceAtLeast(0f)
-                            val maxOffsetY = ((contentHeight - screenWidthPx * 2f) / 2f).coerceAtLeast(0f)
+                            val maxOffsetX = ((contentWidth - screenSize.width) / 2).coerceAtLeast(0f)
+                            val maxOffsetY = ((contentHeight - screenSize.height) / 2).coerceAtLeast(0f)
 
-                            val newOffsetX = (offsetX.value + pan.x).coerceIn(-maxOffsetX, maxOffsetX)
-                            val newOffsetY = (offsetY + pan.y).coerceIn(-maxOffsetY, maxOffsetY)
+                            if (newScale > 1f) {
+                                val newOffsetX = (offsetX.value + pan.x).coerceIn(-maxOffsetX, maxOffsetX)
+                                val newOffsetY = (offsetY.value + pan.y).coerceIn(-maxOffsetY, maxOffsetY)
 
-                            offsetX.snapTo(newOffsetX)
-                            offsetY = newOffsetY
-                        } else {
-                            scale.snapTo(1f)
-                            offsetX.snapTo(0f)
-                            offsetY = 0f
+                                offsetX.snapTo(newOffsetX)
+                                offsetY.snapTo(newOffsetY)
+                            } else {
+                                scale.snapTo(1f)
+                                offsetX.snapTo(0f)
+                                offsetY.snapTo(0f)
+                            }
                         }
                     }
-                }
+                )
             }
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -996,59 +1044,31 @@ fun MangaContent(imageUrls: List<String>) {
                         coroutineScope.launch {
                             scale.animateTo(1f)
                             offsetX.animateTo(0f)
-                            offsetY = 0f
+                            offsetY.animateTo(0f)
                         }
+                    },
+                    onTap = { offset ->
+                        if (offset.x < screenSize.width / 2f) onTapLeft() else onTapRight()
                     }
                 )
             }
-            .clipToBounds()
-    ) {
-        val scrollModifier = if (!isZoomed) {
-            Modifier.verticalScroll(verticalScrollState)
-        } else {
-            Modifier
-        }
-
-        var accumulatedHeight = 0.dp
-
-        Column(
-            modifier = scrollModifier
-                .graphicsLayer {
-                    scaleX = scale.value
-                    scaleY = scale.value
-                    translationX = offsetX.value
-                    translationY = offsetY
-                    transformOrigin = TransformOrigin(0.5f, 0f)
-                }
-        ) {
-            imageUrls.forEach { imageUrl ->
-                var imageHeight by remember { mutableStateOf(500.dp) }
-
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Manga Page",
-                    contentScale = ContentScale.FillWidth,
-                    onSuccess = { state ->
-                        val width = state.painter.intrinsicSize.width
-                        val height = state.painter.intrinsicSize.height
-                        if (width > 0) {
-                            val ratio = height / width
-                            imageHeight = screenWidthDp * ratio
-                            accumulatedHeight += imageHeight + 8.dp
-                            totalContentHeightDp = accumulatedHeight
-                        }
-                    },
-                    modifier = Modifier
-                        .width(screenWidthDp)
-                        .height(imageHeight)
-                        .padding(bottom = 8.dp)
-                )
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+                translationX = offsetX.value
+                translationY = offsetY.value
+                transformOrigin = TransformOrigin.Center
             }
-        }
+    ) {
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "Manga Page",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxSize()
+                .onSizeChanged { imageSize.value = it }
+        )
     }
-
-
-
 }
 
 fun goToPreviousChapter(

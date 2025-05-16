@@ -31,6 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.storyefun.R
 import com.example.storyefun.data.DrawerItem
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -191,6 +192,10 @@ fun AdminDrawer(
                             contentDescription = "Logout",
                             tint = Color.White.copy(alpha = 0.8f),
                             modifier = Modifier.size(24.dp)
+                                .clickable(onClick = { FirebaseAuth.getInstance().signOut()
+                                navController.navigate(("login"))
+                                })
+
                         )
 
                         Spacer(modifier = Modifier.width(16.dp))

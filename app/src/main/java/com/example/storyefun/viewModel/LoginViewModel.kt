@@ -3,10 +3,13 @@ package com.example.storyefun.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.storyefun.data.repository.AuthRepository
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 data class LoginUiState(
     val email: String = "",
@@ -14,7 +17,8 @@ data class LoginUiState(
     val errorMessage: String? = null,
     val isLoading: Boolean = false,
     val navigateToHome: Boolean = false,
-    val navigateToRegister: Boolean = false
+    val navigateToRegister: Boolean = false,
+    val navigateToAdmin: Boolean = false
 )
 
 class LoginViewModel(
@@ -44,7 +48,33 @@ class LoginViewModel(
                     val result = authRepository.loginUser(state.email, state.password)
                     _uiState.value = _uiState.value.copy(isLoading = false)
                     if (result.isSuccess) {
-                        _uiState.value = _uiState.value.copy(navigateToHome = true)
+                        // Check user role after successful login
+                        val user = FirebaseAuth.getInstance().currentUser
+                        if (user != null) {
+                            try {
+                                val db = FirebaseFirestore.getInstance()
+                                val document = db.collection("users")
+                                    .document(user.uid)
+                                    .get()
+                                    .await()
+                                val role = document.getString("role")
+                                if (role == "admin") {
+                                    _uiState.value = _uiState.value.copy(navigateToAdmin = true)
+                                } else {
+                                    _uiState.value = _uiState.value.copy(navigateToHome = true)
+                                }
+                            } catch (e: Exception) {
+                                // Handle Firestore errors, default to home
+                                _uiState.value = _uiState.value.copy(
+                                    navigateToHome = true,
+                                    errorMessage = "Unable to verify user role: ${e.message}"
+                                )
+                            }
+                        } else {
+                            _uiState.value = _uiState.value.copy(
+                                errorMessage = "User not found after login"
+                            )
+                        }
                     } else {
                         _uiState.value = _uiState.value.copy(
                             errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
@@ -60,6 +90,10 @@ class LoginViewModel(
     }
 
     fun resetNavigation() {
-        _uiState.value = _uiState.value.copy(navigateToHome = false, navigateToRegister = false)
+        _uiState.value = _uiState.value.copy(
+            navigateToHome = false,
+            navigateToRegister = false,
+            navigateToAdmin = false
+        )
     }
 }
