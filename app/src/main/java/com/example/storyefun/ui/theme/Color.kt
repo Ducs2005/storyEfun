@@ -11,4 +11,4 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val Blue40 = Color(0xFF97FFFF) // Màu xanh nhạt
-
+val Whiteblur = Color(0xFFFAF2DD)
