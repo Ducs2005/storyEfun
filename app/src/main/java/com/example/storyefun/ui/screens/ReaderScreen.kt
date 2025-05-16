@@ -325,7 +325,7 @@ fun ReaderScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    textToSpeech?.setSpeechRate(1.5F)
+    //textToSpeech?.setSpeechRate(1.5F)
     val chunkToParagraphIndex = mutableListOf<Int>()
 
     DisposableEffect(isPlaying) {
