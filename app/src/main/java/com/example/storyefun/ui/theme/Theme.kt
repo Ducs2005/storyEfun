@@ -14,7 +14,6 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-// Define App Colors
 data class AppColors(
     val background: Color,
     val textPrimary: Color,
@@ -27,13 +26,14 @@ data class AppColors(
     val backgroundContrast2: Color,
     val header: Color,
     val buttonOrange: Color,
-    val backOrange: Color
+    val backOrange: Color,
+    val questCompletedColor: Color // Added for completed quests
 )
 
 // Light Theme
 val LightColors = AppColors(
     background = Color.White,
-    header = Color(0xFFFCE0CA), // Updated to a brighter orange
+    header = Color(0xFFFCE0CA), // Brighter orange
     textPrimary = Color.Black,
     textSecondary = Color.Gray,
     buttonBackground = Color.Red,
@@ -43,13 +43,14 @@ val LightColors = AppColors(
     backgroundContrast1 = Color.Black,
     backgroundContrast2 = Color(0xFF4D4D44),
     buttonOrange = Color(0xFFFFA500),
-    backOrange = Color(0xFFFF7043)
+    backOrange = Color(0xFFFF7043),
+    questCompletedColor = Color(0xFF22D079) // Light green for completed quests
 )
 
 // Dark Theme
 val DarkColors = AppColors(
     background = Color.Black,
-    header = Color(0xFF3B390A), // Updated to a deeper gray
+    header = Color(0xFF3B390A), // Deeper gray
     textPrimary = Color.White,
     textSecondary = Color.Gray,
     buttonBackground = Color.Red,
@@ -59,7 +60,8 @@ val DarkColors = AppColors(
     backgroundContrast1 = Color.White,
     backgroundContrast2 = Color.Gray,
     buttonOrange = Color(0xFFFFA500),
-    backOrange = Color(0xFFFF7043)
+    backOrange = Color(0xFFFF7043),
+    questCompletedColor = Color(0xFF22D079) // Slightly darker light green for dark theme
 )
 
 // Create a Local variable to store colors

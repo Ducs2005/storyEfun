@@ -142,9 +142,11 @@ fun Header(
                 }
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Deposit",
+                    contentDescription = "desposit",
                     tint = theme.textPrimary,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier
+                        .size(14.dp)
+                        .clickable(onClick = { navController.navigate("desposite") })
                 )
                 IconButton(onClick = { navController.navigate("profile") }) {
                     Icon(

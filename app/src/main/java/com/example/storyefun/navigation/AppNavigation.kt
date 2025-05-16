@@ -55,6 +55,9 @@ sealed class Screen(val route: String) {
     object HistoricalTransaction : Screen("historicalTransaction")
     object RevenueStatistics : Screen("revenueStatistics")
     object Quest : Screen("quest")
+
+    object Test : Screen("test")
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,6 +154,11 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
             QuestScreen(navController, currentUser?.uid ?: "")
 
         }
+
+
+
+        composable(Screen.Test.route) { TestScreen() }
+
 
     }
 }

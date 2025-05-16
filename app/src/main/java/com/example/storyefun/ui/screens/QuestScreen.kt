@@ -1,3 +1,4 @@
+
 package com.example.storyefun.ui
 
 import android.widget.Toast
@@ -13,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.storyefun.data.repository.QuestRepository
-
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.QuestViewModel
+import com.example.storyefun.viewModel.ThemeViewModel
 
 @Composable
 fun QuestScreen(navController: NavController, userId: String) {
@@ -46,29 +46,40 @@ fun QuestScreen(navController: NavController, userId: String) {
     val toastMessage by viewModel.toastMessage.collectAsState()
 
     // Hiển thị toast
-
+    LaunchedEffect(toastMessage) {
+        toastMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            //viewModel.clearToastMessage()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(theme.background)
     ) {
         // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .background(theme.header)
                 .padding(16.dp)
         ) {
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.align(Alignment.CenterStart)
             ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = theme.textPrimary
+                )
             }
             Text(
                 text = "Nhiệm vụ hàng ngày",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                color = theme.textPrimary,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -78,6 +89,7 @@ fun QuestScreen(navController: NavController, userId: String) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
+                .background(theme.background)
         ) {
             if (quests.isEmpty() && !isLoading) {
                 item {
@@ -87,7 +99,7 @@ fun QuestScreen(navController: NavController, userId: String) {
                             .fillMaxWidth()
                             .padding(16.dp),
                         textAlign = TextAlign.Center,
-                        color = Color.Gray
+                        color = theme.textSecondary
                     )
                 }
             }
@@ -98,7 +110,7 @@ fun QuestScreen(navController: NavController, userId: String) {
                         .padding(vertical = 8.dp)
                         .shadow(5.dp, RoundedCornerShape(12.dp)),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+                    colors = CardDefaults.cardColors(containerColor = theme.backgroundColor.copy(alpha = 0.9f))
                 ) {
                     Row(
                         modifier = Modifier
@@ -111,7 +123,6 @@ fun QuestScreen(navController: NavController, userId: String) {
                             Text(
                                 text = when (quest.type) {
                                     "daily_login" -> "Đăng nhập hàng ngày"
-
                                     "online_one_minute" -> "Online 1 phút"
                                     "online_two_minute" -> "Online 2 phút"
                                     "online_twenty_minute" -> "Online 20 phút"
@@ -119,17 +130,17 @@ fun QuestScreen(navController: NavController, userId: String) {
                                 },
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF333333)
+                                color = if (quest.completed) theme.questCompletedColor else theme.textPrimary
                             )
                             Text(
                                 text = "Tiến độ: ${quest.progress}/${quest.requiredProgress}",
                                 fontSize = 14.sp,
-                                color = Color.Gray
+                                color = if (quest.completed) theme.questCompletedColor else theme.textSecondary
                             )
                             Text(
                                 text = "Thưởng: ${quest.reward} coin",
                                 fontSize = 14.sp,
-                                color = Color(0xFF4CAF50)
+                                color = theme.buttonOrange
                             )
                         }
                         Button(
@@ -144,13 +155,14 @@ fun QuestScreen(navController: NavController, userId: String) {
                                 .shadow(3.dp, RoundedCornerShape(8.dp)),
                             shape = RoundedCornerShape(8.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (quest.completed) Color.Gray else theme.buttonOrange
+                                containerColor = if (quest.completed) theme.questCompletedColor else theme.buttonOrange,
+                                disabledContainerColor = theme.textSecondary
                             )
                         ) {
                             Text(
                                 text = if (quest.completed) "Xong" else "Nhận",
                                 fontSize = 14.sp,
-                                color = Color.White
+                                color = theme.buttonText
                             )
                         }
                     }
@@ -162,7 +174,8 @@ fun QuestScreen(navController: NavController, userId: String) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                color = theme.textPrimary
             )
         }
     }

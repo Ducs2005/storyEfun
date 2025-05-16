@@ -3,6 +3,7 @@ package com.example.storyefun.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -110,6 +111,11 @@ fun NewBookScreen(navController: NavController) {
                             .width(300.dp)
                             .wrapContentHeight()
                             .clip(RoundedCornerShape(8.dp))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray, // Màu của viền
+                                shape = RoundedCornerShape(12.dp) // Hình dạng của viền
+                            )
                             .clickable {
                                 navController.navigate("bookDetail/${book.id}")
                             },

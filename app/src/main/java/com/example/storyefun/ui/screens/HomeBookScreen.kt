@@ -70,15 +70,17 @@ fun HomeBookScreen(
 fun BookTabScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("Books", "Audio books")
+    val theme = LocalAppColors.current // Access theme colors
 
     Column(modifier = Modifier) {
         TabRow(
             selectedTabIndex = selectedTabIndex,
-            contentColor = Color.Black,
+            containerColor = theme.backgroundColor, // Use theme.backgroundColor
+            contentColor = theme.textPrimary, // Use theme.textPrimary
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    color = Color(0xFF00897B)
+                    color = theme.buttonOrange // Use theme.buttonOrange for indicator
                 )
             }
         ) {
@@ -89,7 +91,7 @@ fun BookTabScreen(navController: NavController) {
                     text = {
                         Text(
                             text = title,
-                            color = if (selectedTabIndex == index) Color.Black else Color.Gray
+                            color = if (selectedTabIndex == index) theme.textPrimary else theme.textSecondary // Use theme colors
                         )
                     }
                 )

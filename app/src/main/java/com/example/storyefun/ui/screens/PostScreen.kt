@@ -1,7 +1,9 @@
 package com.example.storyefun.ui.screens
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +42,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.storyefun.data.models.Post
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import kotlin.apply
+import kotlin.text.isNullOrEmpty
 
 @Composable
 fun PostScreen(
@@ -77,7 +82,7 @@ fun PostCard(post: Post,  openLink: (String) -> Unit) {
     ) {
         Row(modifier = Modifier.padding(8.dp)) {
             if (!post.image.isNullOrEmpty()) {
-                androidx.compose.foundation.Image(
+                Image(
                     painter = rememberAsyncImagePainter(post.image),
                     contentDescription = "Audiobook Cover",
                     modifier = Modifier
@@ -111,7 +116,7 @@ fun PostCard(post: Post,  openLink: (String) -> Unit) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.clickable {
-                            openSpotifyLink(context,post.audio)
+                            openSpotifyLink(context, post.audio)
                         }
                     )
                 }
