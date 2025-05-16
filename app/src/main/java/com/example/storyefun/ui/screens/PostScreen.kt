@@ -4,12 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,10 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -41,8 +45,13 @@ import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
 import com.example.storyefun.data.models.Post
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.storyefun.ui.theme.Whiteblur
 import kotlin.apply
 import kotlin.text.isNullOrEmpty
 
@@ -72,34 +81,54 @@ fun PostScreen(
 }
 
 @Composable
-fun PostCard(post: Post,  openLink: (String) -> Unit) {
+fun PostCard(post: Post, openLink: (String) -> Unit) {
     val context = LocalContext.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Unspecified),
+            .height(150.dp)
+            .padding(8.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Whiteblur)
+            .clickable {
+                if (!post.audio.isNullOrEmpty()) {
+                    openSpotifyLink(context, post.audio)
+                }
+            },
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-        Row(modifier = Modifier.padding(8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             if (!post.image.isNullOrEmpty()) {
                 Image(
                     painter = rememberAsyncImagePainter(post.image),
-                    contentDescription = "Audiobook Cover",
+                    contentDescription = "Post Image",
                     modifier = Modifier
-                        .size(100.dp)
-                        .fillMaxWidth()
-                        .padding(end = 8.dp)
+                        .fillMaxHeight()
+                        .width(120.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
+                        .background(MaterialTheme.colorScheme.surface),
+                contentScale = ContentScale.Crop
                 )
             }
 
+            Spacer(modifier = Modifier.width(12.dp))
+
             Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(12.dp)
+                    .weight(1f),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = post.name,
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
 
@@ -107,23 +136,29 @@ fun PostCard(post: Post,  openLink: (String) -> Unit) {
                     text = "Author: ${post.author}",
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 if (!post.audio.isNullOrEmpty()) {
                     Text(
-                        text = "Audio: ${post.audio}",
+                        text = "Listen Now",
                         style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            openSpotifyLink(context, post.audio)
-                        }
+                        modifier = Modifier
+                            .padding(vertical = 4.dp)
+                            .clickable {
+                                openSpotifyLink(context, post.audio)
+                            }
                     )
                 }
             }
         }
     }
 }
+
 
 fun openSpotifyLink(context: android.content.Context, url: String) {
     val spotifyIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {

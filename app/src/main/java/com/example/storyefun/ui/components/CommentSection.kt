@@ -120,7 +120,7 @@ fun CommentSection(theme: AppColors, bookId: String, initialComments: List<Comme
             },
             modifier = Modifier.align(Alignment.End),
             colors = ButtonDefaults.buttonColors(
-                containerColor = theme.buttonBackground,
+                containerColor = theme.backOrange,
                 contentColor = theme.textPrimary
             )
         ) {

@@ -97,7 +97,7 @@ fun BookDetailScreen(
                         TabRow(
                             selectedTabIndex = selectedTabIndex,
                             modifier = Modifier.fillMaxWidth(),
-                            containerColor = theme.backgroundContrast2
+                            containerColor = theme.buttonOrange
                         ) {
                             Tab(
                                 selected = selectedTabIndex == 0,
@@ -295,7 +295,7 @@ fun MangaInfo(theme: AppColors, book: Book, navController: NavController, userVi
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF38D70)),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
@@ -467,7 +467,7 @@ fun InformationSection(navController: NavController, theme: AppColors, book: Boo
                 text = if (expanded) "Thu gọn" else "Xem thêm",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = Color.Red,
+                color = theme.backOrange,
                 modifier = Modifier
                     .clickable { expanded = !expanded }
                     .padding(top = 4.dp)

@@ -11,4 +11,9 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val Blue40 = Color(0xFF97FFFF) // Màu xanh nhạt
-
+val Whiteblur = Color(0xFFFAF2DD)
+val Purple = Color(0xFF5C6898)
+val NightSky = Color(0xFF24214D)
+val Peach = Color(0xFFFFC49B)
+val Cbet = Color(0xFFEFE8E0)
+val Nacte = Color(0xFF4E7CB2)

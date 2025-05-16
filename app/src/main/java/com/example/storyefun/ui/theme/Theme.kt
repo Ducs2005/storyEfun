@@ -27,7 +27,9 @@ data class AppColors(
     val header: Color,
     val buttonOrange: Color,
     val backOrange: Color,
-    val questCompletedColor: Color // Added for completed quests
+    val questCompletedColor: Color,
+    val title: Color,
+    val titleLarge: Color
 )
 
 // Light Theme
@@ -42,9 +44,11 @@ val LightColors = AppColors(
     tagColor = Color.DarkGray,
     backgroundContrast1 = Color.Black,
     backgroundContrast2 = Color(0xFF4D4D44),
-    buttonOrange = Color(0xFFFFA500),
-    backOrange = Color(0xFFFF7043),
-    questCompletedColor = Color(0xFF22D079) // Light green for completed quests
+    buttonOrange = Color(0xFFA16D68),
+    backOrange = Color(0xFFF38D70),
+    questCompletedColor = Color(0xFF22D079),
+    title = Color(0xFF5C6898),
+    titleLarge = Color(0xFF26384F)// Light green for completed quests
 )
 
 // Dark Theme
@@ -60,8 +64,10 @@ val DarkColors = AppColors(
     backgroundContrast1 = Color.White,
     backgroundContrast2 = Color.Gray,
     buttonOrange = Color(0xFFFFA500),
-    backOrange = Color(0xFFFF7043),
-    questCompletedColor = Color(0xFF22D079) // Slightly darker light green for dark theme
+    backOrange = Color(0xFFF1B7A6),
+    questCompletedColor = Color(0xFF22D079),
+    title = Color.White,
+    titleLarge = Color.White
 )
 
 // Create a Local variable to store colors
