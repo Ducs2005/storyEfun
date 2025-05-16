@@ -8,17 +8,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.storyefun.ui.theme.LocalAppColors
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun CoinScreen(navController: NavController) {
+    val theme = LocalAppColors.current
     val options = listOf(
         "Chương hiện tại" to 0,
         "10 chương sau\nGiảm 10%" to 10,
@@ -61,6 +62,7 @@ fun CoinScreen(navController: NavController) {
             text = "Đọc vĩnh viễn",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
+            color = theme.textPrimary,
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -68,6 +70,7 @@ fun CoinScreen(navController: NavController) {
             text = "Chương bắt đầu: Chapter 67",
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
+            color = theme.textPrimary,
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -90,13 +93,13 @@ fun CoinScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Text("Giá gốc", fontSize = 14.sp)
-        Text("$originalPrice xu", fontWeight = FontWeight.Bold)
+        Text("Giá gốc", fontSize = 14.sp, color = theme.textSecondary)
+        Text("$originalPrice xu", fontWeight = FontWeight.Bold, color = theme.textPrimary)
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        Text("Hàng loạt ưu đãi", fontSize = 14.sp)
-        Text("-${originalPrice * discount / 100} xu", fontWeight = FontWeight.Bold, color = Color.Red)
+        Text("Hàng loạt ưu đãi", fontSize = 14.sp, color = theme.textSecondary)
+        Text("-$originalPrice * discount / 100 xu", fontWeight = FontWeight.Bold, color = theme.buttonOrange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -104,12 +107,13 @@ fun CoinScreen(navController: NavController) {
             "Tự động mua chương sau",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
+            color = theme.textPrimary,
             modifier = Modifier.padding(vertical = 4.dp)
         )
         Text(
             "Chương miễn phí và chương đã mở khóa sẽ không bị mua lại",
             fontSize = 12.sp,
-            color = Color.Gray
+            color = theme.textSecondary
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -118,14 +122,14 @@ fun CoinScreen(navController: NavController) {
             text = "Tổng: $total xu",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Red
+            color = theme.buttonOrange
         )
 
         // ✅ Hiển thị coin lấy từ Firestore
         Text(
             text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."} xu",
             fontSize = 14.sp,
-            color = Color.Gray
+            color = theme.textSecondary
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -138,11 +142,12 @@ fun CoinScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                shape = RoundedCornerShape(24.dp)
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = theme.buttonOrange)
             ) {
-                Text("Nạp tiền")
+                Text("Nạp tiền", color = theme.buttonText)
             }
-        }else{
+        } else {
             Button(
                 onClick = {
                     val uid = FirebaseAuth.getInstance().currentUser?.uid
@@ -169,16 +174,12 @@ fun CoinScreen(navController: NavController) {
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Xanh lá
+                colors = ButtonDefaults.buttonColors(containerColor = theme.questCompletedColor)
             ) {
-                Text("Mở khóa")
+                Text("Mở khóa", color = theme.buttonText)
             }
         }
-
-
-        }
-
-
+    }
 }
 
 @Composable
@@ -187,9 +188,10 @@ fun OptionButton(
     selected: Int,
     onClick: () -> Unit
 ) {
+    val theme = LocalAppColors.current
     val isSelected = option.second == selected
-    val borderColor = if (isSelected) Color.Red else Color.LightGray
-    val textColor = if (isSelected) Color.Red else Color.Black
+    val borderColor = if (isSelected) theme.buttonOrange else theme.textSecondary
+    val textColor = if (isSelected) theme.buttonOrange else theme.textPrimary
 
     Box(
         modifier = Modifier
@@ -208,3 +210,4 @@ fun OptionButton(
         )
     }
 }
+

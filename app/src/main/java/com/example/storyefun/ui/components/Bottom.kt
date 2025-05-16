@@ -50,15 +50,16 @@ fun BottomBar(navController: NavController, currentRoute: String, themeViewModel
                 color = theme.buttonOrange,
                 route = "category"
             ),
-            Item(
-                icon = Icons.Rounded.AddCircle,
-                color = theme.buttonOrange,
-                route = "upload"
-            ),
+
             Item(
                 icon = Icons.Rounded.FavoriteBorder,
                 color = theme.buttonOrange,
                 route = "favourite"
+            ),
+            Item(
+                icon = Icons.Rounded.Difference,
+                color = theme.buttonOrange,
+                route = "quest"
             ),
             Item(
                 icon = Icons.Rounded.Settings,

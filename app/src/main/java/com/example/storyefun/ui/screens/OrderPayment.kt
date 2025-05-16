@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,11 +29,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.storyefun.R
 import com.example.storyefun.admin.ui.PaymentNotification
 import com.example.storyefun.data.repository.TransactionRepository
+import com.example.storyefun.ui.theme.AppTheme
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.viewModel.TransactionViewModel
 import com.example.storyefun.zaloPay.Api.CreateOrder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.graphics.Color
 import org.json.JSONObject
 import vn.zalopay.sdk.Environment
 import vn.zalopay.sdk.ZaloPayError
@@ -57,7 +59,7 @@ class OrderPayment : ComponentActivity() {
         val coin = intent.getIntExtra("coin", 0)
 
         setContent {
-            MaterialTheme {
+            AppTheme(darkTheme = isSystemInDarkTheme()) {
                 OrderPaymentScreen(amount, coin)
             }
         }
@@ -114,16 +116,16 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF5F5F5)),
+                .background(theme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Color(0xFFFFB300))
+            CircularProgressIndicator(color = theme.buttonOrange)
         }
     } else {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White),
+                .background(theme.background),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header
@@ -132,7 +134,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                     .fillMaxWidth()
                     .background(
                         brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFFFFB300), Color(0xFFFFA000))
+                            colors = listOf(theme.buttonOrange, theme.backOrange)
                         )
                     )
                     .padding(vertical = 12.dp, horizontal = 16.dp),
@@ -157,7 +159,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         "Đơn hàng",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = theme.buttonText
                     )
                 }
             }
@@ -177,7 +179,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 24.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFF0F0F0))
+                        .background(theme.backgroundColor)
                         .padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -185,15 +187,14 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                     Text(
                         "Số dư hiện tại:",
                         fontSize = 20.sp,
-                        color = Color(0xFF333333)
+                        color = theme.textPrimary
                     )
-                    Row ()
-                    {
+                    Row {
                         Text(
                             "${coinBalance ?: "Đang tải"}",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF5722)
+                            color = theme.buttonOrange
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.ic_coin),
@@ -201,7 +202,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             modifier = Modifier
                                 .size(16.dp)
                                 .align(Alignment.Top),
-                            tint = Color.Gray
+                            tint = theme.textSecondary
                         )
                     }
                 }
@@ -212,14 +213,14 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color.White)
+                        .background(theme.backgroundColor)
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
                         "Số tiền nạp: $amountFormatted VNĐ",
                         fontSize = 20.sp,
-                        color = Color(0xFF333333)
+                        color = theme.textPrimary
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -228,7 +229,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                         Text(
                             "Số coin: +$coin",
                             fontSize = 20.sp,
-                            color = Color(0xFF333333)
+                            color = theme.textPrimary
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.ic_coin),
@@ -236,7 +237,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             modifier = Modifier
                                 .size(14.dp)
                                 .align(Alignment.Top),
-                            tint = Color.Gray
+                            tint = theme.textSecondary
                         )
                     }
                 }
@@ -245,7 +246,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                 paymentStatus?.let {
                     Text(
                         text = it,
-                        color = Color(0xFFFFB300),
+                        color = theme.buttonOrange,
                         fontSize = 16.sp,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -256,7 +257,7 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                 transactionStatus?.let {
                     Text(
                         text = it,
-                        color = Color(0xFFFFB300),
+                        color = theme.buttonOrange,
                         fontSize = 16.sp,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -342,14 +343,14 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             .fillMaxSize()
                             .background(
                                 brush = Brush.linearGradient(
-                                    colors = listOf(Color(0xFFFFB300), Color(0xFFFFA000))
+                                    colors = listOf(theme.buttonOrange, theme.backOrange)
                                 )
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             "Thanh toán bằng Zalo Pay",
-                            color = Color.White,
+                            color = theme.buttonText,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )

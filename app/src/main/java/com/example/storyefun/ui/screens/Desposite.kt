@@ -1,5 +1,9 @@
 package com.example.storyefun.ui.screens
 
+
+import com.example.storyefun.ui.screens.OrderPayment
+
+
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -30,7 +34,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.storyefun.R
 import com.example.storyefun.data.AmountOption
+import com.example.storyefun.ui.theme.AppTheme
 import com.example.storyefun.ui.theme.LocalAppColors
+import androidx.compose.foundation.isSystemInDarkTheme
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -38,7 +44,7 @@ class DespositeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            AppTheme(darkTheme = isSystemInDarkTheme()) {
                 DespositeScreen()
             }
         }
@@ -87,11 +93,7 @@ fun DespositeScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFF5F5F5), Color(0xFFEAEAEA))
-                )
-            )
+            .background(theme.background)
     ) {
         Column(
             modifier = Modifier
@@ -146,25 +148,27 @@ fun DespositeScreen() {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 20.dp),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(4.dp)
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = theme.backgroundColor
+                )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    Row (
+                    Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    )
-                    {
+                    ) {
                         Text(
                             text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF424242)
+                            color = theme.textPrimary
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.ic_coin),
@@ -172,10 +176,9 @@ fun DespositeScreen() {
                             modifier = Modifier
                                 .size(12.dp)
                                 .align(Alignment.Top),
-                            tint = Color.Gray
+                            tint = theme.textSecondary
                         )
                     }
-
                 }
             }
 
@@ -207,7 +210,7 @@ fun DespositeScreen() {
                         .fillMaxSize()
                         .background(
                             brush = Brush.horizontalGradient(
-                                colors = listOf(Color(0xFFFFB300), Color(0xFFFFA000))
+                                colors = listOf(theme.buttonOrange, theme.backOrange)
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ),
@@ -217,7 +220,7 @@ fun DespositeScreen() {
                         text = "Nạp Ngay",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = theme.buttonText
                     )
                 }
             }
@@ -227,6 +230,7 @@ fun DespositeScreen() {
 
 @Composable
 fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
+    val theme = LocalAppColors.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -239,12 +243,12 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
             )
             .border(
                 width = if (isSelected) 2.dp else 0.dp,
-                color = if (isSelected) Color(0xFFFFCA28) else Color.Transparent,
+                color = if (isSelected) theme.buttonOrange else Color.Transparent,
                 shape = RoundedCornerShape(12.dp)
             ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Color(0xFFFFF3E0) else Color.White
+            containerColor = if (isSelected) theme.header else theme.backgroundColor
         )
     ) {
         Box(
@@ -261,7 +265,7 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
                     text = "${option.amount}đ",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF57C00)
+                    color = theme.buttonOrange
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -272,7 +276,7 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
                         text = "+${option.coin}",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF616161)
+                        color = theme.textSecondary
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
@@ -281,7 +285,7 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
                         modifier = Modifier
                             .size(14.dp)
                             .align(Alignment.Top),
-                        tint = Color.Gray
+                        tint = theme.textSecondary
                     )
                 }
             }
