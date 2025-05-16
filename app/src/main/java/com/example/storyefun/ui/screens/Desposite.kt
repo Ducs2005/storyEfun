@@ -161,7 +161,7 @@ fun DespositeScreen() {
                     )
                     {
                         Text(
-                            text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."} \uD83D\uDC8E",
+                            text = "Số dư: ${coinBalance?.toString() ?: "Đang tải..."}  \uD83D\uDC8E",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFF424242)
@@ -262,7 +262,7 @@ fun AmountBox(option: AmountOption, isSelected: Boolean, onClick: () -> Unit) {
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Text(
-                        text = "+${option.coin} 💎",
+                        text = "+${option.coin}  💎",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color(0xFF616161)

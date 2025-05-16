@@ -129,13 +129,13 @@ fun Header(
                             color = Color.Black,
                             modifier = Modifier.padding(horizontal = 1.dp)
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_coin),
-                            contentDescription = "Coin Balance",
+                        Text(
+                            text = "\uD83D\uDC8E", // emoji kim cương 💎
+                            fontSize = 14.sp,
                             modifier = Modifier
-                                .size(12.dp)
-                                .align(Alignment.Top),
-                            tint = Color.DarkGray
+                                .align(Alignment.Top)
+                                .padding(start = 4.dp),
+                            color = Color.DarkGray
                         )
 
                     }

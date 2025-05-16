@@ -195,13 +195,13 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFF5722)
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_coin),
-                            contentDescription = "Coin Balance",
+                        Text(
+                            text = "\uD83D\uDC8E", // emoji kim cương 💎
+                            fontSize = 14.sp,
                             modifier = Modifier
-                                .size(16.dp)
-                                .align(Alignment.Top),
-                            tint = Color.Gray
+                                .align(Alignment.Top)
+                                .padding(start = 4.dp),
+                            color = Color.DarkGray
                         )
                     }
                 }
@@ -230,13 +230,13 @@ fun OrderPaymentScreen(amount: Int, coin: Int) {
                             fontSize = 20.sp,
                             color = Color(0xFF333333)
                         )
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_coin),
-                            contentDescription = "Coin",
+                        Text(
+                            text = "\uD83D\uDC8E", // emoji kim cương 💎
+                            fontSize = 14.sp,
                             modifier = Modifier
-                                .size(14.dp)
-                                .align(Alignment.Top),
-                            tint = Color.Gray
+                                .align(Alignment.Top)
+                                .padding(start = 4.dp),
+                            color = Color.DarkGray
                         )
                     }
                 }
