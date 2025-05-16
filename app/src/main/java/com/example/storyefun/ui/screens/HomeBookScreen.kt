@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import com.example.storyefun.ui.components.BottomBar
 import com.example.storyefun.ui.components.Header
 import com.example.storyefun.ui.theme.LocalAppColors
-import com.example.storyefun.viewModel.AudioBookViewModel
 import com.example.storyefun.viewModel.ThemeViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -67,7 +66,7 @@ fun HomeBookScreen(
 }
 
 @Composable
-fun BookTabScreen(navController: NavController, viewModel: AudioBookViewModel = viewModel()) {
+fun BookTabScreen(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabTitles = listOf("Books", "Audio books")
     val theme = LocalAppColors.current // Access theme colors
@@ -108,17 +107,7 @@ fun BookTabScreen(navController: NavController, viewModel: AudioBookViewModel = 
                 PopularBookScreen(navController)
                 Spacer(modifier = Modifier.height(16.dp))
             }
-            1 -> AudioBooksContent(navController)
+            1 -> PostScreen()
         }
     }
-}
-
-@Composable
-fun AudioBooksContent(navController: NavController) {
-    // Placeholder for AudioBooksContent
-    Text(
-        text = "Audio Books Content (To be implemented)",
-        color = LocalAppColors.current.textPrimary,
-        modifier = Modifier.padding(16.dp)
-    )
 }
