@@ -44,8 +44,11 @@ class BookViewModel : ViewModel() {
     private val _unlockedChapterIds = MutableStateFlow<List<String>>(emptyList())
     val unlockedChapterIds: StateFlow<List<String>> = _unlockedChapterIds
 
-    var currentParagraphIndex by mutableStateOf(0)
-    var isPlaying by mutableStateOf(false)
+    private val _isPlaying = MutableLiveData<Boolean>(false)
+    val isPlaying: LiveData<Boolean> = _isPlaying
+
+    private val _currentParagraphIndex = MutableLiveData<Int>(0)
+    val currentParagraphIndex: LiveData<Int> = _currentParagraphIndex
 
     init {
         viewModelScope.launch {
@@ -239,7 +242,7 @@ class BookViewModel : ViewModel() {
             } else if (url.endsWith(".docx")) {
                 downloadAndExtractDocx(url).split("\n\n").filter { it.isNotBlank() }
             } else {
-                listOf("Chưa hỗ trợ định dạng này: $url")
+                listOf(url)
             }
         } catch (e: Exception) {
             Log.e("BookViewModel", "Failed to load paragraphs: ${e.message}")
@@ -248,14 +251,12 @@ class BookViewModel : ViewModel() {
     }
 
 
-
-
-    fun updateParagraphIndex(newIndex: Int) {
-        currentParagraphIndex = newIndex
+    fun setIsPlaying(isPlaying: Boolean) {
+        _isPlaying.value = isPlaying
     }
 
-    fun setIsPlaying(value: Boolean) {
-        isPlaying = value
+    fun updateParagraphIndex(index: Int) {
+        _currentParagraphIndex.value = index
     }
 
 }

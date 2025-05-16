@@ -2,7 +2,6 @@ package com.example.storyefun.ui.screens
 
 import android.content.Context
 import android.content.Intent
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -30,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -59,6 +59,7 @@ import com.example.storyefun.ui.theme.AppColors
 import com.example.storyefun.ui.theme.LocalAppColors
 import com.example.storyefun.utils.downloadAndExtractDocx
 import com.example.storyefun.utils.downloadTextFile
+import com.example.storyefun.utils.splitParagraphIntoChunks
 import com.example.storyefun.viewModel.BookViewModel
 import com.example.storyefun.viewModel.ThemeViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -66,6 +67,10 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.util.*
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
+import com.example.storyefun.utils.rememberTextToSpeech
+import androidx.compose.material.icons.filled.Pause
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +81,7 @@ fun ReaderScreen(
     chapterOrder: Long,
     themeViewModel: ThemeViewModel,
     viewModel: BookViewModel = viewModel(),
+    isPlaying : Boolean = false
 ) {
     var isUIVisible by remember { mutableStateOf(true) }
     val book by viewModel.book.observeAsState()
@@ -95,9 +101,8 @@ fun ReaderScreen(
     val textToSpeech = rememberTextToSpeech(context)
 
 
-    // Trạng thái cho TTS
-    var isPlaying by remember { mutableStateOf(false) }
-    var currentParagraphIndex by remember { mutableStateOf(0) }
+    val isPlaying by viewModel.isPlaying.observeAsState(false)
+    val currentParagraphIndex by viewModel.currentParagraphIndex.observeAsState(0)
 
     // Giải phóng TextToSpeech khi Composable bị hủy
     DisposableEffect(Unit) {
@@ -121,6 +126,7 @@ fun ReaderScreen(
                     coinBalance = 0
                 }
         }
+        viewModel.setIsPlaying(isPlaying)
     }
 
     Box(
@@ -160,7 +166,7 @@ fun ReaderScreen(
                                 currentParagraphIndex = currentParagraphIndex,
                                 isPlaying = isPlaying,
                                 onPlayParagraph = { index, text ->
-                                    currentParagraphIndex = index
+                                    viewModel.updateParagraphIndex(index)
                                     Log.e("info before play: ",  " " + text)
                                     textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
                                 }
@@ -193,44 +199,46 @@ fun ReaderScreen(
                     book = book,
                     isPlaying = isPlaying,
                     onPlayToggle = {
-                        isPlaying = !isPlaying
+
                         if (!isPlaying) {
                             textToSpeech?.stop()
                         }
+                        viewModel.setIsPlaying(!isPlaying)
                     },
                     onPreviousChapter = {
-                        val (hasPrevious, prevVolumeOrder, prevChapterOrder) = viewModel.getPreviousChapter(currentVolumeOrder, currentChapterOrder)
-                        if (hasPrevious && prevVolumeOrder != null && prevChapterOrder != null) {
-                            val prevChapter = viewModel.getChapterContent(prevVolumeOrder, prevChapterOrder)
-                            if (prevChapter != null && (viewModel.isChapterUnlocked(prevChapter.id) || prevChapter.price == 0)) {
-                                currentVolumeOrder = prevVolumeOrder
-                                currentChapterOrder = prevChapterOrder
-                                currentParagraphIndex = 0
-                                isPlaying = false
-                                textToSpeech?.stop()
-                            } else {
-                                selectedChapter = prevChapter
-                                selectedVolumeOrder = prevVolumeOrder
+                        goToPreviousChapter(
+                            currentVolumeOrder,
+                            currentChapterOrder,
+                            viewModel,
+                            textToSpeech,
+                            onChapterChanged = { vol, chap ->
+                                currentVolumeOrder = vol
+                                currentChapterOrder = chap
+                            },
+                            onShowUnlockDialog = { chapter, vol ->
+                                selectedChapter = chapter
+                                selectedVolumeOrder = vol
                                 showUnlockDialog = true
                             }
-                        }
+                        )
                     },
+
                     onNextChapter = {
-                        val (hasNext, nextVolumeOrder, nextChapterOrder) = viewModel.getNextChapter(currentVolumeOrder, currentChapterOrder)
-                        if (hasNext && nextVolumeOrder != null && nextChapterOrder != null) {
-                            val nextChapter = viewModel.getChapterContent(nextVolumeOrder, nextChapterOrder)
-                            if (nextChapter != null && (viewModel.isChapterUnlocked(nextChapter.id) || nextChapter.price == 0)) {
-                                currentVolumeOrder = nextVolumeOrder
-                                currentChapterOrder = nextChapterOrder
-                                currentParagraphIndex = 0
-                                isPlaying = false
-                                textToSpeech?.stop()
-                            } else {
-                                selectedChapter = nextChapter
-                                selectedVolumeOrder = nextVolumeOrder
+                        goToNextChapter(
+                            currentVolumeOrder,
+                            currentChapterOrder,
+                            viewModel,
+                            textToSpeech,
+                            onChapterChanged = { vol, chap ->
+                                currentVolumeOrder = vol
+                                currentChapterOrder = chap
+                            },
+                            onShowUnlockDialog = { chapter, vol ->
+                                selectedChapter = chapter
+                                selectedVolumeOrder = vol
                                 showUnlockDialog = true
                             }
-                        }
+                        )
                     },
                     onChapterListClick = { showChapterList = true },
                     themeViewModel = themeViewModel
@@ -300,8 +308,7 @@ fun ReaderScreen(
                         if (viewModel.isChapterUnlocked(chapter.id) || chapter.price == 0) {
                             currentVolumeOrder = volumeOrder
                             currentChapterOrder = chapter.order
-                            currentParagraphIndex = 0
-                            isPlaying = false
+                            viewModel.setIsPlaying(false)
                             textToSpeech?.stop()
                             showChapterList = false
                         } else {
@@ -318,50 +325,129 @@ fun ReaderScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    textToSpeech?.setSpeechRate(1.5F)
+    val chunkToParagraphIndex = mutableListOf<Int>()
 
-    DisposableEffect(currentParagraphIndex, isPlaying) {
-        Log.d("playdffdfd", "abzzz1")
-        if (isPlaying) {
-            textToSpeech?.setOnUtteranceProgressListener(object : android.speech.tts.UtteranceProgressListener() {
-                override fun onStart(utteranceId: String?) {}
+    DisposableEffect(isPlaying) {
+        var allChunks: List<String> = emptyList()
+        var currentChunkIndex = 0
 
-                override fun onDone(utteranceId: String?) {
-                    if (isPlaying) {
-                        Log.d("playdffdfd", "abzzz2: $utteranceId")
+        val listener = object : UtteranceProgressListener() {
+            override fun onStart(utteranceId: String?) {
+                Log.d("TTS", "🔊 onStart: $utteranceId")
+            }
 
-                        coroutineScope.launch {
-                            val chapterContent = viewModel.getChapterContent(currentVolumeOrder, currentChapterOrder)
-                            if (chapterContent != null) {
-                                val paragraphs = viewModel.getParagraphs(chapterContent.content)
-                                if (currentParagraphIndex + 1 < paragraphs.size) {
-                                    val nextParagraph = paragraphs[currentParagraphIndex + 1]
-                                    viewModel.updateParagraphIndex(currentParagraphIndex + 1)
-                                    textToSpeech?.speak(
-                                        nextParagraph,
-                                        TextToSpeech.QUEUE_FLUSH,
-                                        null,
-                                        "utterance_${currentParagraphIndex + 1}"
-                                    )
-                                } else {
-                                    viewModel.setIsPlaying(false)
-                                    viewModel.updateParagraphIndex(0)
-                                }
-                            }
+            override fun onDone(utteranceId: String?) {
+                Log.d("TTS", "✅ onDone: $utteranceId")
+
+                if (!isPlaying) {
+                    Log.d("TTS", "⏹️ Dừng do isPlaying = false")
+                    textToSpeech?.stop()
+                    return
+                }
+
+                coroutineScope.launch {
+                    if (currentChunkIndex + 1 < allChunks.size) {
+                        currentChunkIndex++
+                        val nextChunk = allChunks[currentChunkIndex]
+                        Log.d("TTS", "▶️ Phát chunk $currentChunkIndex: $nextChunk")
+
+                        val result = textToSpeech?.speak(
+                            nextChunk,
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            "utterance_$currentChunkIndex"
+                        )
+                        if (result == TextToSpeech.ERROR) {
+                            Log.e("TTS", "❌ speak() lỗi chunk $currentChunkIndex")
                         }
+
+                        val currentParagraphIndex = chunkToParagraphIndex[currentChunkIndex]
+                        viewModel.updateParagraphIndex(currentParagraphIndex)
+
+                    } else {
+                        Log.d("TTS", "🏁 Hết tất cả chunks")
+
+                        goToNextChapter(
+                            currentVolumeOrder,
+                            currentChapterOrder,
+                            viewModel,
+                            textToSpeech,
+                            onChapterChanged = { nextVol, nextChap ->
+                                currentVolumeOrder = nextVol
+                                currentChapterOrder = nextChap
+                            },
+                            onShowUnlockDialog = { chapter, vol ->
+                                selectedChapter = chapter
+                                selectedVolumeOrder = vol
+                                showUnlockDialog = true
+                            },
+                            continuePlay = true
+                        )
                     }
                 }
+            }
 
-                override fun onError(utteranceId: String?) {
-                    Toast.makeText(context, "Lỗi phát âm thanh", Toast.LENGTH_SHORT).show()
-                    viewModel.setIsPlaying(false)
-                }
-            })
+            override fun onError(utteranceId: String?) {
+                Log.e("TTS", "❌ onError: $utteranceId")
+                Toast.makeText(context, "Lỗi phát âm thanh", Toast.LENGTH_SHORT).show()
+                viewModel.setIsPlaying(false)
+            }
         }
 
+        if (isPlaying) {
+            Log.d("TTS", "⏯️ Bắt đầu phát")
+            coroutineScope.launch {
+                val chapterContent = viewModel.getChapterContent(currentVolumeOrder, currentChapterOrder)
+
+                if (chapterContent != null) {
+                    val paragraphs = viewModel.getParagraphs(chapterContent.content)
+
+                    val chunkList = mutableListOf<String>()
+                    chunkToParagraphIndex.clear()
+                    paragraphs.forEachIndexed { index, paragraph ->
+                        val chunks = splitParagraphIntoChunks(paragraph)
+                        chunks.forEach { chunk ->
+                            chunkList.add(chunk)
+                            chunkToParagraphIndex.add(index)
+                        }
+                    }
+
+                    allChunks = chunkList
+                    currentChunkIndex = 0
+
+                    if (allChunks.isNotEmpty()) {
+                        viewModel.updateParagraphIndex(chunkToParagraphIndex[currentChunkIndex])
+                        textToSpeech?.setOnUtteranceProgressListener(listener)
+
+                        val firstChunk = allChunks[currentChunkIndex]
+                        val result = textToSpeech?.speak(
+                            firstChunk,
+                            TextToSpeech.QUEUE_FLUSH,
+                            null,
+                            "utterance_$currentChunkIndex"
+                        )
+                        if (result == TextToSpeech.ERROR) {
+                            Log.e("TTS", "❌ speak() lỗi tại chunk đầu tiên")
+                        }
+                    } else {
+                        Log.w("TTS", "⚠️ Không có chunk nào để phát")
+                    }
+                } else {
+                    Log.e("TTS", "❌ Không thể tải nội dung chương")
+                    viewModel.setIsPlaying(false)
+                }
+            }
+        }
+
+
         onDispose {
+            Log.d("TTS", "🧹 onDispose: dừng TTS")
+            textToSpeech?.stop()
             textToSpeech?.setOnUtteranceProgressListener(null)
         }
     }
+
 
 }
 
@@ -594,11 +680,12 @@ fun CustomBottomBar(
                             )
                     ) {
                         Icon(
-                            imageVector = if (isPlaying) Icons.Filled.PlayArrow else Icons.Filled.Phone,
+                            imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
                             tint = theme.textPrimary,
                             modifier = Modifier.size(24.dp)
                         )
+
                     }
 
                     FontSizeSelector(
@@ -838,20 +925,18 @@ fun NovelContent(
                         Text(
                             text = paragraph,
                             fontSize = fontSize.sp,
-                            color = if (index == currentParagraphIndex && isPlaying)
-                                theme.textPrimary.copy(alpha = 1f)
-                            else
-                                theme.textPrimary.copy(alpha = 0.7f),
+                            color =  theme.textPrimary.copy(alpha = 0.7f),
+
                             modifier = Modifier
                                 .padding(bottom = 16.dp)
                                 .clickable {
-                                    onPlayParagraph(index, paragraph)
+                                    //onPlayParagraph(index, paragraph)
                                 },
                             lineHeight = (fontSize * lineSpacing).sp,
-                            fontWeight = if (index == currentParagraphIndex && isPlaying)
-                                FontWeight.Bold
-                            else
-                                FontWeight.Normal
+//                            fontWeight = if (index == currentParagraphIndex && isPlaying)
+//                                FontWeight.Bold
+//                            else
+//                                FontWeight.Normal
                         )
                     }
                 }
@@ -961,37 +1046,51 @@ fun MangaContent(imageUrls: List<String>) {
             }
         }
     }
+
+
+
 }
 
-@Composable
-fun rememberTextToSpeech(context: Context): TextToSpeech? {
-    val ttsRef = remember { mutableStateOf<TextToSpeech?>(null) }
-
-    DisposableEffect(Unit) {
-        var tts: TextToSpeech? = null
-
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                val localeVN = Locale("vi", "VN")
-                val result = tts?.setLanguage(localeVN)
-
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Toast.makeText(context, "Không hỗ trợ tiếng Việt hoặc thiếu dữ liệu", Toast.LENGTH_SHORT).show()
-                    val installIntent = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
-                    context.startActivity(installIntent)
-                } else {
-                    ttsRef.value = tts
-                }
-            } else {
-                Toast.makeText(context, "TTS khởi tạo thất bại", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        onDispose {
-            tts?.stop()
-            tts?.shutdown()
+fun goToPreviousChapter(
+    currentVolumeOrder: Long,
+    currentChapterOrder: Long,
+    viewModel: BookViewModel,
+    textToSpeech: TextToSpeech?,
+    onChapterChanged: (volumeOrder: Long, chapterOrder: Long) -> Unit,
+    onShowUnlockDialog: (chapter: Chapter?, volumeOrder: Long) -> Unit
+) {
+    val (hasPrevious, prevVolumeOrder, prevChapterOrder) = viewModel.getPreviousChapter(currentVolumeOrder, currentChapterOrder)
+    if (hasPrevious && prevVolumeOrder != null && prevChapterOrder != null) {
+        val prevChapter = viewModel.getChapterContent(prevVolumeOrder, prevChapterOrder)
+        if (prevChapter != null && (viewModel.isChapterUnlocked(prevChapter.id) || prevChapter.price == 0)) {
+            onChapterChanged(prevVolumeOrder, prevChapterOrder)
+            viewModel.updateParagraphIndex(0)
+            viewModel.setIsPlaying(false)
+            textToSpeech?.stop()
+        } else {
+            onShowUnlockDialog(prevChapter, prevVolumeOrder)
         }
     }
-
-    return ttsRef.value
+}
+fun goToNextChapter(
+    currentVolumeOrder: Long,
+    currentChapterOrder: Long,
+    viewModel: BookViewModel,
+    textToSpeech: TextToSpeech?,
+    onChapterChanged: (volumeOrder: Long, chapterOrder: Long) -> Unit,
+    onShowUnlockDialog: (chapter: Chapter?, volumeOrder: Long) -> Unit,
+    continuePlay: Boolean = false
+) {
+    val (hasNext, nextVolumeOrder, nextChapterOrder) = viewModel.getNextChapter(currentVolumeOrder, currentChapterOrder)
+    if (hasNext && nextVolumeOrder != null && nextChapterOrder != null) {
+        val nextChapter = viewModel.getChapterContent(nextVolumeOrder, nextChapterOrder)
+        if (nextChapter != null && (viewModel.isChapterUnlocked(nextChapter.id) || nextChapter.price == 0)) {
+            onChapterChanged(nextVolumeOrder, nextChapterOrder)
+            viewModel.updateParagraphIndex(0)
+            viewModel.setIsPlaying(false) // 👈 tiếp tục phát nếu được yêu cầu
+            textToSpeech?.stop()
+        } else {
+            onShowUnlockDialog(nextChapter, nextVolumeOrder)
+        }
+    }
 }
