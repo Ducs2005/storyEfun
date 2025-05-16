@@ -3,6 +3,7 @@ package com.example.storyefun.ui.screens
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,15 +53,19 @@ fun NewBookScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         firestore.collection("books")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(4)
             .get()
             .addOnSuccessListener { result ->
+                val bookList = result.map { document -> document.toObject(Book::class.java) }.toMutableList()
                 books.clear()
-                for (document in result) {
-                    val book = document.toObject(Book::class.java)
-                    books.add(book)
+
+                val randomBooks = mutableListOf<Book>()
+                repeat(minOf(5, bookList.size)) {
+                    val randomIndex = (bookList.indices).random()
+                    randomBooks.add(bookList[randomIndex])
+                    bookList.removeAt(randomIndex)
                 }
+
+                books.addAll(randomBooks)
             }
             .addOnFailureListener {
                 Toast.makeText(context, "Failed to load books: ${it.message}", Toast.LENGTH_SHORT).show()
@@ -106,6 +111,11 @@ fun NewBookScreen(navController: NavController) {
                             .width(300.dp)
                             .wrapContentHeight()
                             .clip(RoundedCornerShape(8.dp))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Gray, // Màu của viền
+                                shape = RoundedCornerShape(12.dp) // Hình dạng của viền
+                            )
                             .clickable {
                                 navController.navigate("bookDetail/${book.id}")
                             },

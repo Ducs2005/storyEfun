@@ -71,6 +71,7 @@ fun SearchScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     val db = FirebaseFirestore.getInstance()
     var searchMode by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -79,9 +80,11 @@ fun SearchScreen(navController: NavController) {
             onQueryChange = { newQuery ->
                 query = newQuery
                 searchMode = true
+                searchResults = emptyList()
                 if (newQuery.isNotEmpty()) {
                     performSearch(db, newQuery) { results ->
                         searchResults = results.sortedBy { it.first }
+                        isLoading = false
                     }
                 } else {
                     searchResults = emptyList()
@@ -91,8 +94,11 @@ fun SearchScreen(navController: NavController) {
                 if (query.isNotEmpty()) {
                     scope.launch {
                         searchMode = false
+                        selectedBooks = emptyList()
+                        isLoading = true
                         searchAndFetchBooks(db, query) { books ->
                             selectedBooks = books
+                            isLoading = false
                         }
                     }
                     keyboardController?.hide()
@@ -110,24 +116,57 @@ fun SearchScreen(navController: NavController) {
             }
         )
 
-        if (!searchMode && selectedBooks.isNotEmpty()) {
-            BookList(
-                books = selectedBooks,
-                onBookClick = { book ->
-                    navController.navigate("bookDetail/${book.id}")
-                }
-            )
-        } else if (searchMode && searchResults.isNotEmpty()) {
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(searchResults) { (name, id) ->
-                    ListItem(
-                        modifier = Modifier.clickable {
-                            navController.navigate("bookDetail/$id")
-                        },
-                        headlineContent = {
-                            Text(text = name)
-                        },
-                    )
+        when {
+            isLoading -> { // Hiển thị trạng thái tải
+                Text(
+                    text = "Loading...",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    color = Color.Gray
+                )
+            }
+            !searchMode && selectedBooks.isEmpty() -> {
+                Text(
+                    text = "No results found",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    color = Color.Gray
+                )
+            }
+            !searchMode -> {
+                BookList(
+                    books = selectedBooks,
+                    onBookClick = { book ->
+                        navController.navigate("bookDetail/${book.id}")
+                    }
+                )
+            }
+            searchMode && searchResults.isEmpty() -> {
+                Text(
+                    text = "No results found",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    color = Color.Gray
+                )
+            }
+            searchMode -> {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(searchResults) { (name, id) ->
+                        ListItem(
+                            modifier = Modifier.clickable {
+                                navController.navigate("bookDetail/$id")
+                            },
+                            headlineContent = {
+                                Text(text = name)
+                            },
+                        )
+                    }
                 }
             }
         }
