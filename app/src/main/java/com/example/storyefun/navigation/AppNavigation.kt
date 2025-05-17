@@ -56,6 +56,9 @@ sealed class Screen(val route: String) {
     object RevenueStatistics : Screen("revenueStatistics")
     object Quest : Screen("quest")
 
+    object SplashScreen : Screen("splash")
+
+
     object Test : Screen("test")
 
 }
@@ -65,13 +68,13 @@ sealed class Screen(val route: String) {
 fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewModel) {
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
-    val start : String
-    if (currentUser != null) {
-        start = Screen.Home.route
-    } else {
-        // Người dùng chưa đăng nhập, yêu cầu đăng nhập
-        start = Screen.Login.route
-    }
+    val start : String = "splash"
+//    if (currentUser != null) {
+//        start = Screen.AdminMenu.route
+//    } else {
+//        // Người dùng chưa đăng nhập, yêu cầu đăng nhập
+//        start = Screen.Login.route
+//    }
 
     NavHost(
         navController = navController,
@@ -158,6 +161,7 @@ fun AppNavigation(navController: NavHostController, themeViewModel: ThemeViewMod
 
 
         composable(Screen.Test.route) { TestScreen() }
+        composable(Screen.SplashScreen.route) { SplashScreen(navController) }
 
 
     }

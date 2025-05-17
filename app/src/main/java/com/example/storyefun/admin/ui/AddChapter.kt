@@ -42,6 +42,7 @@ import com.example.storyefun.viewModel.ChapterViewModel
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddChapterScreen(
     navController: NavController,
@@ -71,6 +72,7 @@ fun AddChapterScreen(
     // State cho novel content
     var novelContent by remember { mutableStateOf(TextFieldValue("")) }
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
+    var inputMode by remember { mutableStateOf("manual") } // "manual" or "file"
 
     // Hiển thị toast nếu có message
     LaunchedEffect(toastMessage) {
@@ -115,16 +117,26 @@ fun AddChapterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(theme.background)
     ) {
         // Header
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(theme.header)
+                .padding(vertical = 8.dp)
+        ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = theme.textPrimary
+                )
             }
             Text(
                 text = "Add Chapter",
                 style = MaterialTheme.typography.titleLarge,
+                color = theme.textPrimary,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -151,7 +163,7 @@ fun AddChapterScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 12.dp),
-            color = Color(0xFFE0E0E0)
+            color = theme.textSecondary.copy(alpha = 0.3f)
         )
 
         // Phần thêm chapter mới
@@ -163,12 +175,16 @@ fun AddChapterScreen(
             OutlinedTextField(
                 value = viewModel.title,
                 onValueChange = { viewModel.updateTitle(it) },
-                label = { Text("📌 Chapter Title", fontSize = 16.sp) },
+                label = { Text("📌 Chapter Title", fontSize = 16.sp, color = theme.textSecondary) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
-                shape = RoundedCornerShape(12.dp)
+                textStyle = LocalTextStyle.current.copy(fontSize = 20.sp, color = theme.textPrimary),
+                shape = RoundedCornerShape(12.dp),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = theme.buttonOrange,
+                    unfocusedBorderColor = theme.textSecondary
+                )
             )
 
             ChapterPriceSelector(
@@ -178,46 +194,97 @@ fun AddChapterScreen(
 
             if (book?.isNovel() == true) {
                 // UI cho novel
-                Button(
-                    onClick = { filePickerLauncher.launch("text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document") },
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .shadow(5.dp, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.buttonOrange),
-                    contentPadding = PaddingValues(0.dp)
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "Chọn file .txt hoặc .docx",
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Button(
+                        onClick = { inputMode = "manual" },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .padding(end = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (inputMode == "manual") theme.buttonOrange else theme.textSecondary.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Text(
+                            "Nhập thủ công",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Button(
+                        onClick = { inputMode = "file" },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .padding(start = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (inputMode == "file") theme.buttonOrange else theme.textSecondary.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Text(
+                            "Tải file",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                if (inputMode == "file") {
+                    Button(
+                        onClick = { filePickerLauncher.launch("text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(5.dp, RoundedCornerShape(12.dp)),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = theme.buttonOrange),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            "Chọn file .txt hoặc .docx",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
-                selectedFileUri?.let {
-                    Text(
-                        text = "File đã chọn: ${it.path?.substringAfterLast("/")}",
-                        fontSize = 16.sp,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    selectedFileUri?.let {
+                        Text(
+                            text = "File đã chọn: ${it.path?.substringAfterLast("/")}",
+                            fontSize = 16.sp,
+                            color = theme.textSecondary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
 
                 OutlinedTextField(
                     value = novelContent,
                     onValueChange = { novelContent = it },
-                    label = { Text("Nội dung chương", fontSize = 16.sp) },
+                    label = { Text("Nội dung chương", fontSize = 16.sp, color = theme.textSecondary) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp)
                         .padding(bottom = 12.dp),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = theme.textPrimary),
                     shape = RoundedCornerShape(12.dp),
-                    maxLines = 10
+                    maxLines = 10,
+                    enabled = inputMode == "manual" || selectedFileUri != null,
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = theme.buttonOrange,
+                        unfocusedBorderColor = theme.textSecondary
+                    )
                 )
             } else {
                 // UI cho manga
@@ -265,6 +332,7 @@ fun AddChapterScreen(
                         viewModel.uploadNovelChapter(novelContent.text) {
                             novelContent = TextFieldValue("")
                             selectedFileUri = null
+                            inputMode = "manual" // Reset to manual input mode
                         }
                     } else {
                         viewModel.uploadChapter {}
@@ -280,7 +348,7 @@ fun AddChapterScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = theme.buttonOrange,
-                    disabledContainerColor = Color(0xFFD3D3D3)
+                    disabledContainerColor = theme.textSecondary.copy(alpha = 0.3f)
                 ),
                 contentPadding = PaddingValues(0.dp)
             ) {
@@ -294,7 +362,10 @@ fun AddChapterScreen(
         }
 
         if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = theme.buttonOrange
+            )
         }
     }
 }
@@ -311,6 +382,7 @@ fun SwipeToDeleteChapter(
     var offsetX by remember { mutableStateOf(0f) }
     var showConfirmDialog by remember { mutableStateOf(false) }
     val density = LocalDensity.current
+    val theme = LocalAppColors.current
     val maxSwipeDistance = with(density) { 80.dp.toPx() }
     val deleteThreshold = maxSwipeDistance * 0.6f
 
@@ -322,8 +394,8 @@ fun SwipeToDeleteChapter(
                     offsetX = 0f
                 }
             },
-            title = { Text("Xác nhận xóa") },
-            text = { Text("Bạn có chắc muốn xóa chapter '${chapter.title}' không?") },
+            title = { Text("Xác nhận xóa", color = theme.textPrimary) },
+            text = { Text("Bạn có chắc muốn xóa chapter '${chapter.title}' không?", color = theme.textPrimary) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -334,7 +406,7 @@ fun SwipeToDeleteChapter(
                         }
                     }
                 ) {
-                    Text("Xóa")
+                    Text("Xóa", color = theme.buttonOrange)
                 }
             },
             dismissButton = {
@@ -346,9 +418,10 @@ fun SwipeToDeleteChapter(
                         }
                     }
                 ) {
-                    Text("Hủy")
+                    Text("Hủy", color = theme.textSecondary)
                 }
-            }
+            },
+            containerColor = theme.background
         )
     }
 
@@ -359,6 +432,7 @@ fun SwipeToDeleteChapter(
         Box(
             modifier = Modifier
                 .matchParentSize()
+                .background(theme.backOrange)
                 .padding(end = 16.dp),
             contentAlignment = Alignment.CenterEnd
         ) {
@@ -375,7 +449,7 @@ fun SwipeToDeleteChapter(
                 .padding(vertical = 8.dp)
                 .shadow(5.dp, RoundedCornerShape(12.dp)),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF0F0F0))
+            colors = CardDefaults.cardColors(containerColor = theme.background)
         ) {
             Column(
                 modifier = Modifier
@@ -404,7 +478,7 @@ fun SwipeToDeleteChapter(
                     text = chapter.title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = theme.textPrimary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -413,7 +487,7 @@ fun SwipeToDeleteChapter(
                     Text(
                         text = chapter.content.firstOrNull()?.take(100) ?: "No content",
                         fontSize = 14.sp,
-                        color = Color.Gray,
+                        color = theme.textSecondary,
                         maxLines = 2
                     )
                 } else {
@@ -440,6 +514,7 @@ fun ChapterPriceSelector(
     selectedPrice: Int?,
     onPriceChange: (Int?) -> Unit
 ) {
+    val theme = LocalAppColors.current
     val options = listOf(0, 100, 200, 500, 1000)
     var expanded by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf(selectedPrice?.toString() ?: "") }
@@ -454,8 +529,8 @@ fun ChapterPriceSelector(
                 text = it
                 onPriceChange(it.toIntOrNull())
             },
-            label = { Text("💰 Giá chương", fontSize = 16.sp) },
-            textStyle = LocalTextStyle.current.copy(fontSize = 20.sp),
+            label = { Text("💰 Giá chương", fontSize = 16.sp, color = theme.textSecondary) },
+            textStyle = LocalTextStyle.current.copy(fontSize = 20.sp, color = theme.textPrimary),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -465,16 +540,21 @@ fun ChapterPriceSelector(
                 .menuAnchor()
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = theme.buttonOrange,
+                unfocusedBorderColor = theme.textSecondary
+            )
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(theme.background)
         ) {
             options.forEach { price ->
                 DropdownMenuItem(
-                    text = { Text(if (price == 0) "Miễn phí" else "$price đ") },
+                    text = { Text(if (price == 0) "Miễn phí" else "$price đ", color = theme.textPrimary) },
                     onClick = {
                         text = price.toString()
                         onPriceChange(price)

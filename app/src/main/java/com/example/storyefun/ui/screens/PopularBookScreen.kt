@@ -61,7 +61,7 @@ fun PopularBookScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(start = 16.dp)
             .background(theme.background) // Use theme.background
     ) {
         // Header Section
@@ -73,9 +73,9 @@ fun PopularBookScreen(navController: NavController) {
         ) {
             Text(
                 text = "Popular books",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = theme.textPrimary // Use theme.textPrimary
+                color = theme.titleLarge // Use theme.textPrimary
             )
         }
 

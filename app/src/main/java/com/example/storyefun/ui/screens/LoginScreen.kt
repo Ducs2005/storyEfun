@@ -1,5 +1,6 @@
 package com.example.storyefun.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -22,7 +23,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.example.storyefun.R
 import com.example.storyefun.data.repository.AuthRepository
 import com.example.storyefun.viewModel.LoginUiState
@@ -30,6 +30,7 @@ import com.example.storyefun.viewModel.LoginViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     // Khởi tạo thủ công AuthRepository và LoginViewModel
@@ -38,15 +39,22 @@ fun LoginScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     // Xử lý điều hướng
-    LaunchedEffect(uiState.navigateToHome, uiState.navigateToRegister) {
+    LaunchedEffect(uiState.navigateToHome, uiState.navigateToRegister, uiState.navigateToAdmin) {
         if (uiState.navigateToHome) {
             navController.navigate("home") {
-                popUpTo(navController.graph.startDestinationId)
-                launchSingleTop = true
+                popUpTo("login") { inclusive = true }
             }
             viewModel.resetNavigation()
         } else if (uiState.navigateToRegister) {
-            navController.navigate("register")
+            navController.navigate("register") {
+                popUpTo("login") { inclusive = true }
+            }
+            viewModel.resetNavigation()
+        } else if (uiState.navigateToAdmin) {
+            Log.d("LoginScreen", "Navigating to menuScreen for admin")
+            navController.navigate("menuScreen") {
+                popUpTo("login") { inclusive = true }
+            }
             viewModel.resetNavigation()
         }
     }
@@ -62,6 +70,7 @@ fun LoginScreen(navController: NavController) {
             text = "Hello,",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
+            color = Color.White, // Improved contrast
             modifier = Modifier.padding(top = 60.dp, start = 20.dp)
         )
         Text(
@@ -69,6 +78,7 @@ fun LoginScreen(navController: NavController) {
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
             fontSize = 55.sp,
+            color = Color.White, // Improved contrast
             modifier = Modifier.padding(top = 100.dp, start = 20.dp)
         )
         Column(
@@ -97,7 +107,11 @@ fun LoginScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF4A00E0),
+                    unfocusedBorderColor = Color.Gray
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -109,7 +123,11 @@ fun LoginScreen(navController: NavController) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f))
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Color(0xFF4A00E0),
+                    unfocusedBorderColor = Color.Gray
+                )
             )
             Spacer(modifier = Modifier.height(40.dp))
             Button(
@@ -141,10 +159,8 @@ fun LoginScreen(navController: NavController) {
                 Text("Don't have an account? Sign up here!", color = Color(0xFF1E90FF))
             }
         }
-
     }
 }
-
 
 class LoginViewModelFactory(
     private val authRepository: AuthRepository

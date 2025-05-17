@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.storyefun.data.models.Book
 import com.example.storyefun.ui.theme.LocalAppColors
+import com.example.storyefun.ui.theme.Purple
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
@@ -87,9 +88,9 @@ fun NewBookScreen(navController: NavController) {
             ) {
                 Text(
                     text = "New arrivals",
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
-                    color = theme.textPrimary // Use theme.textPrimary
+                    color = theme.titleLarge // Use theme.textPrimary
                 )
                 Text(
                     text = "Select all",
@@ -147,8 +148,8 @@ fun NewBookScreen(navController: NavController) {
                                 Text(
                                     text = book.name,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = theme.textPrimary, // Use theme.textPrimary
+                                    fontSize = 20.sp,
+                                    color = theme.title, // Use theme.textPrimary
                                     maxLines = 1
                                 )
                                 Text(
