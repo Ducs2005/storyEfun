@@ -52,24 +52,51 @@ The project follows the **MVVM architecture** to improve maintainability and sca
 - ZaloPay Sandbox
 
 
-## ⚙️ Installation
+## ⚙️ Installation Guide
 
-###  Clone the repository
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ducs2005/storyEfun.git
-###  Open project
+git clone https://github.com/your-username/your-repository.git
+cd your-repository
+```
 
-Open the client project using Android Studio.
+### 2. Open the project
 
-### Configure Firebase
+Open the project using **Android Studio**.
 
-Create a Firebase project
+* Select **Open Project**
+* Choose the project folder you just cloned
 
-Add google-services.json to the project
+### 3. Setup Firebase
 
-Enable Authentication and Database
+This project uses **Firebase services**.
 
-### Run the app
+1. Go to Firebase Console and create a new project
+2. Enable the following services:
 
-Run the application on an emulator or Android device.
+   * Firebase Authentication
+   * Firestore Database (or Realtime Database)
+3. Download the **google-services.json** file
+4. Place it inside the **app/** directory
+
+```
+app/
+ ├── src/
+ ├── build.gradle
+ └── google-services.json
+```
+
+### 4. Configure Cloudinary (optional)
+
+If the project requires image upload:
+
+* Create a Cloudinary account
+* Replace the Cloudinary configuration values in the project with your own credentials.
+
+### 5. Run the application
+
+1. Connect an Android device or start an emulator
+2. Click **Run** in Android Studio
+
+The application should now build and launch successfully.
