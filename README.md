@@ -58,11 +58,11 @@ The project follows the **MVVM architecture** to improve maintainability and sca
 
 ```bash
 git clone https://github.com/Ducs2005/storyEfun.git
-2️⃣ Open project
+### 2️⃣ Open project
 
 Open the client project using Android Studio.
 
-3️⃣ Configure Firebase
+### 3️⃣ Configure Firebase
 
 Create a Firebase project
 
@@ -70,6 +70,6 @@ Add google-services.json to the project
 
 Enable Authentication and Database
 
-4️⃣ Run the app
+### 4️⃣ Run the app
 
 Run the application on an emulator or Android device.
